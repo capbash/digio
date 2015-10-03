@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+VERSION=v0.4
+
 #--------------------
 # LOGGING SECTION
 #--------------------
@@ -37,8 +39,6 @@ INFO_LEVEL=1
 WARNING_LEVEL=2
 ERROR_LEVEL=3
 FATAL_LEVEL=4
-
-VERSION=v0.3
 
 error() { log $ERROR_LEVEL "  ${DARK_RED}ERROR${NC}   [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] ${DARK_RED}$1${NC}"; }
 warn() { log $WARNING_LEVEL "  ${LIGHT_RED}WARNING${NC} [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] ${LIGHT_RED}$1${NC}"; }
@@ -136,20 +136,22 @@ ${NC}
 # COMMAND LINE PARSER
 #--------------------
 
-if [[ "$1" == "help" ]]; then
+case "$1" in
+"help")
   usage
   exit 0
-
-elif [[ "$1" == "version" ]]; then
+  ;;
+"version")
   echo -e "${BLUE}DIGIO ${VERSION}${NC}"
   exit 0
-
-elif [[ "$1" == "update-self" ]]; then
+  ;;
+"update-self")
   current_digitalocean_filename=$(which digio)
   curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/digio/master/digio
-  echo "Updated $current_digitalocean_filename"
-
-else
+  info "Updated $current_digitalocean_filename"
+  ;;
+*)
   usage
   exit 0
-fi
+  ;;
+esac
