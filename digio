@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-VERSION=v0.6
-API_URL=https://api.digitalocean.com/v2/droplets
+VERSION=v0.7
+API_URL=https://api.digitalocean.com/v2
+DROPLET_URL=$API_URL/droplets
 
 #--------------------
 # LOGGING SECTION
@@ -123,9 +124,14 @@ Usage
 
   ${BLUE}digio${NC} ${LIGHT_GREEN}[action]${NC}
 
-Available Actions.
+API Actions.
 
-  ${LIGHT_GREEN}create${NC}        ${DARK_GREY}- Create a new digitalocean droplet${NC}
+  ${LIGHT_GREEN}create${NC}        ${DARK_GREY}- Create a new digitalocean droplet (by NAME)${NC}
+  ${LIGHT_GREEN}delete${NC}        ${DARK_GREY}- Delete a new digitalocean droplet (by ID)${NC}
+  ${LIGHT_GREEN}list${NC}          ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
+
+Other Actions
+
   ${LIGHT_GREEN}update-self${NC}   ${DARK_GREY}- Upgrade to latest version${NC}
   ${LIGHT_GREEN}version${NC}       ${DARK_GREY}- Display just version information, like 'DIGIO $VERSION'${NC}
   ${LIGHT_GREEN}help${NC}          ${DARK_GREY}- Show this message${NC}
@@ -189,18 +195,54 @@ do_create()
   debug "  -- IPV6=$IPV6"
   debug "  -- USER_DATA=$USER_DATA"
   debug "  -- PRIVATE_NETWORKING=$PRIVATE_NETWORKING"
-  ANSWER=$(curl -X POST $API_URL \
+  ANSWER=$(curl -X POST $DROPLET_URL \
            -d "{\"name\":\"$NAME\", \"region\":\"$REGION\",\"size\":\"$SIZE\",\"image\":\"$IMAGE\", \"ssh_keys\": $SSH_KEYS, \"backups\": $BACKUPS, \"ipv6\": $IPV6, \"user_data\": $USER_DATA, \"private_networking\": $PRIVATE_NETWORKING}" \
            -H "Authorization: Bearer $TOKEN" \
            -H "Content-Type: application/json" 2> $LOGFILE)
   if [ $? -ne 0 ] ; then
     error "Unable to create droplet $NAME ($REGION, $SIZE, $IMAGE)"
+    error "Reply: $ANSWER"
     error_all $LOGFILE
     exit 1
   fi
   info "Reply: $ANSWER"
 }
 
+do_delete()
+{
+  ID=$1
+  TOKEN=${TOKEN}
+  LOGFILE=${LOGFILE-/tmp/digio.log}
+
+  info "Deleting a droplet $ID"
+  ANSWER=$(curl -X DELETE $DROPLET_URL/$ID \
+           -H "Authorization: Bearer $TOKEN" \
+           -H "Content-Type: application/json" 2> $LOGFILE)
+  if [ $? -ne 0 ] ; then
+    error "Unable to delete droplet $ID"
+    error "Reply: $ANSWER"
+    error_all $LOGFILE
+    exit 1
+  fi
+  info "Reply: $ANSWER"
+}
+
+do_list()
+{
+  TOKEN=${TOKEN}
+  LOGFILE=${LOGFILE-/tmp/digio.log}
+
+  ANSWER=$(curl -X GET $DROPLET_URL \
+           -H "Authorization: Bearer $TOKEN" \
+           -H "Content-Type: application/json" 2> $LOGFILE)
+  if [ $? -ne 0 ] ; then
+    error "Unable to list droplets"
+    error "Reply: $ANSWER"
+    error_all $LOGFILE
+    exit 1
+  fi
+  info "$ANSWER"
+}
 
 #--------------------
 # COMMAND LINE PARSER
@@ -209,6 +251,12 @@ do_create()
 case "$1" in
 "create")
   do_create $2
+  ;;
+"delete")
+  do_delete $2
+  ;;
+"list")
+  do_list
   ;;
 "help")
   usage
@@ -223,6 +271,7 @@ case "$1" in
   OLD_VERION=`digio version`
   curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/digio/master/digio
   NEW_VERSION=`digio version`
+  current_digitalocean_filename=$(which digio)
 
   if [[ "$OLD_VERION" = "$NEW_VERSION" ]]; then
     info "Already at the latest version $NEW_VERSION (${current_digitalocean_filename})"
