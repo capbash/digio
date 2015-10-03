@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-VERSION=v0.4
+VERSION=v0.5
+API_URL=https://api.digitalocean.com/v2/droplets
 
 #--------------------
 # LOGGING SECTION
@@ -45,6 +46,11 @@ warn() { log $WARNING_LEVEL "  ${LIGHT_RED}WARNING${NC} [${LIGHT_GREEN}$(date +"
 notify() { log $INFO_LEVEL "  ${BLUE}INFO${NC}    [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] $1${NC}"; }
 info() { log $INFO_LEVEL "  ${BLUE}INFO${NC}    [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] $1${NC}"; }
 debug() { log $DEBUG_LEVEL "  ${LIGHT_GREY}DEBUG${NC}   [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] ${LIGHT_GREY}$1${NC}"; }
+
+error_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do error "$line" ; done < $1.last ;) }
+warn_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do warn "$line" ; done < $1.last ;) }
+notify_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do notify "$line" ; done < $1.last ;) }
+debug_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do debug "$line" ; done < $1.last ;) }
 
 blue() { pp "${BLUE}$1${NC}"; }
 grey() { pp "${LIGHT_GREY}$1${NC}"; }
@@ -131,12 +137,79 @@ ${NC}
 "
 }
 
+#--------------------
+# API CALLS
+#--------------------
+
+do_create()
+{
+  TOKEN=${TOKEN}
+  NAME=$1
+  REGION=${REGION-tor1}
+  SIZE=${SIZE-512mb}
+  IMAGE=${IMAGE-ubuntu-14-04-x64}
+  SSH_KEYS=${SSH_KEYS-default}
+  BACKUPS=${BACKUPS-false}
+  IPV6=${IPV6-true}
+  USER_DATA=${USER_DATA-null}
+  PRIVATE_NETWORKING=${PRIVATE_NETWORKING-true}
+  LOGFILE=${LOGFILE-/tmp/digio.log}
+
+  if [[ "$TOKEN" = "" ]]; then
+    error "Please provide a digital ocean token, e.g. TOKEN=983339f14aaaxx94ex6xd49f17797af8f33fd9f39f8ff1xx74397ef83d791787"
+    error "For more information, please checkout https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2"
+    exit 1
+  fi
+
+  info "Creating a new droplet $NAME ($REGION, $SIZE, $IMAGE)"
+
+  if [[ "$SSH_KEYS" = "default" ]]; then
+    RSA_PK=$HOME/.ssh/id_rsa.pub
+    DSA_PK=$HOME/.ssh/id_dsa.pub
+    PUBLIC_KEY=$RSA_PK
+    if [[ ! -e "$PUBLIC_KEY" ]]; then
+      PUBLIC_KEY=$DSA_PK
+    fi
+
+    if [[ ! -e "$PUBLIC_KEY" ]]; then
+      warn "  -- Unable to find your public in $RSA_PK or $DSA_PK, no SSH_KEYS provided"
+      SSH_KEYS="null"
+    else
+      debug " -- Providing you access to your droplet using $PUBLIC_KEY"
+      SSH_KEYS="[\"`cat $PUBLIC_KEY`\"]"
+    fi
+  fi
+
+  debug "  -- NAME=$NAME"
+  debug "  -- REGION=$REGION"
+  debug "  -- SIZE=$SIZE"
+  debug "  -- IMAGE=$IMAGE"
+  debug "  -- SSH_KEYS=$SSH_KEYS"
+  debug "  -- BACKUPS=$BACKUPS"
+  debug "  -- IPV6=$IPV6"
+  debug "  -- USER_DATA=$USER_DATA"
+  debug "  -- PRIVATE_NETWORKING=$PRIVATE_NETWORKING"
+  ANSWER=$(curl -X POST $API_URL \
+           -d "{\"name\":\"$NAME\", \"region\":\"$REGION\",\"size\":\"$SIZE\",\"image\":\"$IMAGE\", \"ssh_keys\": $SSH_KEYS, \"backups\": $BACKUPS, \"ipv6\": $IPV6, \"user_data\": $USER_DATA, \"private_networking\": $PRIVATE_NETWORKING}" \
+           -H "Authorization: Bearer $TOKEN" \
+           -H "Content-Type: application/json" 2> $LOGFILE)
+  if [ $? -ne 0 ] ; then
+    error "Unable to create droplet $NAME ($REGION, $SIZE, $IMAGE)"
+    error_all $LOGFILE
+    exit 1
+  fi
+  info "Reply: $ANSWER"
+}
+
 
 #--------------------
 # COMMAND LINE PARSER
 #--------------------
 
 case "$1" in
+"create")
+  do_create $2
+  ;;
 "help")
   usage
   exit 0
