@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.5
+VERSION=v0.6
 API_URL=https://api.digitalocean.com/v2/droplets
 
 #--------------------
@@ -223,7 +223,12 @@ case "$1" in
   OLD_VERION=`digio version`
   curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/digio/master/digio
   NEW_VERSION=`digio version`
-  info "Updated $current_digitalocean_filename to $NEW_VERSION (from $OLD_VERION)"
+
+  if [[ "$OLD_VERION" = "$NEW_VERSION" ]]; then
+    info "Already at the latest version $NEW_VERSION (${current_digitalocean_filename})"
+  else
+    info "Updated ${current_digitalocean_filename} to $NEW_VERSION (from $OLD_VERION)"
+  fi
   ;;
 *)
   usage
