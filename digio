@@ -38,6 +38,8 @@ WARNING_LEVEL=2
 ERROR_LEVEL=3
 FATAL_LEVEL=4
 
+VERSION=v0.3
+
 error() { log $ERROR_LEVEL "  ${DARK_RED}ERROR${NC}   [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] ${DARK_RED}$1${NC}"; }
 warn() { log $WARNING_LEVEL "  ${LIGHT_RED}WARNING${NC} [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] ${LIGHT_RED}$1${NC}"; }
 notify() { log $INFO_LEVEL "  ${BLUE}INFO${NC}    [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] $1${NC}"; }
@@ -103,7 +105,7 @@ usage()
 {
   printf "%b" "${BLUE}
 =============================
- DIGIO v0.2 A Bash Implementation
+ DIGIO $VERSION A Bash Implementation
  Of the Digital Ocean API
 
  More information about the API at
@@ -119,6 +121,7 @@ Available Actions.
 
   ${LIGHT_GREEN}create${NC}        ${DARK_GREY}- Create a new digitalocean droplet${NC}
   ${LIGHT_GREEN}update-self${NC}   ${DARK_GREY}- Upgrade to latest version${NC}
+  ${LIGHT_GREEN}version${NC}       ${DARK_GREY}- Display just version information, like 'DIGIO $VERSION'${NC}
   ${LIGHT_GREEN}help${NC}          ${DARK_GREY}- Show this message${NC}
 
 ${LIGHT_GREY}
@@ -135,6 +138,10 @@ ${NC}
 
 if [[ "$1" == "help" ]]; then
   usage
+  exit 0
+
+elif [[ "$1" == "version" ]]; then
+  echo -e "${BLUE}DIGIO ${VERSION}${NC}"
   exit 0
 
 elif [[ "$1" == "update-self" ]]; then
