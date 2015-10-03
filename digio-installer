@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+digitalocean_parse_params()
+{
+  while
+    (( $# > 0 ))
+  do
+    token="$1"
+    shift
+    case "$token" in
+
+      (--path)
+        if [[ -n "${1:-}" ]]
+        then
+          digitalocean_path="$1"
+          shift
+        else
+          fail "--path must be followed by a path, e.g. /usr/local/bin."
+        fi
+        ;;
+
+      (--digio)
+        if [[ -n "${1:-}" ]]
+        then
+          digitalocean_filename="$1"
+          shift
+        else
+          fail "--digio must be followed by a filename, e.g. /usr/local/bin/digio"
+        fi
+        ;;
+
+
+    esac
+  done
+
+  digitalocean_path=${digitalocean_path-/usr/local/bin}
+  digitalocean_filename=${digitalocean_filename-${digitalocean_path}/digio}
+}
+
+do_install()
+{
+  digitalocean_parse_params "$@"
+  echo "Installing do into \"$digitalocean_filename\""
+  curl -s -o "$digitalocean_filename" https://raw.githubusercontent.com/capbash/digio/master/digio
+  chmod 755 "${digitalocean_filename}"
+  echo "Done, to uninstall 'rm \"${digitalocean_filename}\"'."
+}
+
+do_install "$@"

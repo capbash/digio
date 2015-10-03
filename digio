@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+usage()
+{
+  printf "%b" "
+=============================
+ DIGIO v0.1 A Bash Implementation
+ Of the Digital Ocean API
+
+ More information about the API at
+ https://developers.digitalocean.com/documentation/v2/
+=============================
+
+Usage
+
+  digio [action]
+
+Available Actions.
+
+  create        - Create a new digitalocean droplet
+  update-self   - Upgrade to latest version
+  help          - Show this message
+
+"
+}
+
+if [[ "$1" == "help" ]]; then
+  usage
+  exit 0
+
+elif [[ "$1" == "update-self" ]]; then
+  current_digitalocean_filename=$(which digio)
+  curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/digio/master/digio
+  echo "Updated $current_digitalocean_filename"
+
+else
+  usage
+  exit 0
+fi
