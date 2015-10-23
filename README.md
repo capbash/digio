@@ -25,3 +25,104 @@ If you already have dog and want to upgrade to the altest, please run
 ```
 dog update-self
 ```
+
+# Getting Started #
+
+First let's initialize the configs
+
+```
+dog init
+```
+
+This will create a .dog file in the local directory, and you will need to
+specify two important pieces of information.
+
+* TOKEN
+* SSH_KEYS
+
+Here's the default config file
+
+```
+# dog v0.10
+# Provide your Digital Ocean TOKEN
+# https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2
+#
+# TOKEN=XXXX
+#
+# You can provide your desired SSH_KEY ID for password login
+# https://developers.digitalocean.com/documentation/v2/#ssh-keys
+#
+# You can get more information about your keys by running
+#  > dog list keys
+#
+# It should be provided as a list, do don't forget your square brackets
+# SSH_KEYS=[1234, 4567]
+```
+
+Uncomment the TOKEN and put in your tokens value (the above is fake, so don't bother trying it)
+
+Once that's in place, let's create a new droplet
+
+```
+dog create drop1
+```
+
+If everything was setup correctly, you should see a message like
+
+```
+Creating a new droplet drop1 (tor1, 512mb, ubuntu-14-04-x64)
+Reply: {"droplet":{"id":1234,"name":"drop1","memory":512,"vcpus":1,"disk":20,"locked":true,"status":"new","kernel":{"id":5175,"name":"Ubuntu 14.04 x64 vmlinuz-3.13.0-57-generic","version":"3.13.0-57-generic"},"created_at":"2015-10-23T03:36:57Z","features":["virtio"],"backup_ids":[],"next_backup_window":null,"snapshot_ids":[],"image":{"id":13089493,"name":"14.04 x64","distribution":"Ubuntu","slug":"ubuntu-14-04-x64","public":true,"regions":["nyc1","ams1","sfo1","nyc2","ams2","sgp1","lon1","nyc3","ams3","fra1","tor1"],"created_at":"2015-08-10T21:30:19Z","min_disk_size":20,"type":"snapshot"},"size":{"slug":"512mb","memory":512,"vcpus":1,"disk":20,"transfer":1.0,"price_monthly":5.0,"price_hourly":0.00744,"regions":["nyc1","sgp1","sfo1","nyc2","lon1","nyc3","ams3","ams2","fra1","tor1"],"available":true},"size_slug":"512mb","networks":{"v4":[],"v6":[]},"region":{"name":"Toronto 1","slug":"tor1","sizes":["512mb","1gb","2gb","4gb","8gb","16gb","32gb","48gb","64gb"],"features":["private_networking","backups","ipv6","metadata"],"available":true}},
+        "links":{"actions":[{"id":1234,"rel":"create","href":"https://api.digitalocean.com/v2/actions/1234"}]}}
+```
+
+Using the droplet id above (e.g. 1234), we could delete the droplet if it's no longer needed
+
+```
+dog delete 1234
+```
+
+
+# Help #
+
+Here's what is currently available
+
+```
+=============================
+ dog v0.10 A Bash Implementation
+ Of the Digital Ocean API
+
+ More information about the API at
+ https://developers.digitalocean.com/documentation/v2/
+=============================
+
+
+Usage
+
+  dog [action]
+
+Project Setup
+
+  init          - Initialize the local directory to access a digital ocean account
+
+API Actions.
+
+  create        - Create a new digitalocean droplet (by NAME)
+  delete        - Delete a new digitalocean droplet (by ID)
+
+API Queries
+
+  list keys     - List all SSH Keys assoicated with your account
+  list droplets - List all droplets (use this to grab your droplet IDs
+
+Other Actions
+
+  update-self   - Upgrade to latest version
+  version       - Display just version information, like 'dog v0.10'
+  help          - Show this message
+
+
+For reporting issues, please contact aforward@gmail.com, or
+reporting directly against the project at https://github.com/capbash/dog
+```
+
+
