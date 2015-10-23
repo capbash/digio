@@ -42,11 +42,11 @@ WARNING_LEVEL=2
 ERROR_LEVEL=3
 FATAL_LEVEL=4
 
-error() { log $ERROR_LEVEL "  ${DARK_RED}ERROR${NC}   [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] ${DARK_RED}$1${NC}"; }
-warn() { log $WARNING_LEVEL "  ${LIGHT_RED}WARNING${NC} [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] ${LIGHT_RED}$1${NC}"; }
-notify() { log $INFO_LEVEL "  ${BLUE}INFO${NC}    [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] $1${NC}"; }
-info() { log $INFO_LEVEL "  ${BLUE}INFO${NC}    [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] $1${NC}"; }
-debug() { log $DEBUG_LEVEL "  ${LIGHT_GREY}DEBUG${NC}   [${LIGHT_GREEN}$(date +"%Y-%m-%d %H:%M:%S")${NC}] ${LIGHT_GREY}$1${NC}"; }
+error() { log $ERROR_LEVEL "${DARK_RED}$1${NC}"; }
+warn() { log $WARNING_LEVEL "${LIGHT_RED}$1${NC}"; }
+notify() { log $INFO_LEVEL "$1${NC}"; }
+info() { log $INFO_LEVEL "$1${NC}"; }
+debug() { log $DEBUG_LEVEL "${LIGHT_GREY}$1${NC}"; }
 
 error_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do error "$line" ; done < $1.last ;) }
 warn_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do warn "$line" ; done < $1.last ;) }
@@ -124,14 +124,19 @@ Usage
 
   ${BLUE}digio${NC} ${LIGHT_GREEN}[action]${NC}
 
+Project Setup
+
+  ${LIGHT_GREEN}init${NC}          ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
+
 API Actions.
 
   ${LIGHT_GREEN}create${NC}        ${DARK_GREY}- Create a new digitalocean droplet (by NAME)${NC}
   ${LIGHT_GREEN}delete${NC}        ${DARK_GREY}- Delete a new digitalocean droplet (by ID)${NC}
-  ${LIGHT_GREEN}list <item>${NC}   ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
-  ${LIGHT_GREEN}   droplets${NC}
-  ${LIGHT_GREEN}   droplets${NC}
 
+API Queries
+
+  ${LIGHT_GREEN}list keys${NC}     ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
+  ${LIGHT_GREEN}list droplets${NC} ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
 
 Other Actions
 
@@ -168,8 +173,18 @@ do_help()
 do_verify_token()
 {
   if [[ "$1" = "" ]]; then
-    error "Please provide a digital ocean token, e.g. TOKEN=983339f14aaaxx94ex6xd49f17797af8f33fd9f39f8ff1xx74397ef83d791787"
-    error "For more information, please checkout https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2"
+    warn "\nWe were unable to find your Digital Ocean TOKEN, PLEASE TAKE ACTION BELOW.\n"
+    info "To provide you token you have have a few options...\n"
+    info "  1) Create a .digio config file and edit it to contain your token.\n"
+    info "     e.g. ${LIGHT_GREEN}digio init${NC}"
+    info "          ${LIGHT_GREEN}echo \"TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787\" >> .digio${NC}\n"
+    info "  2) Put your <TOKEN VALUE> in a TOKEN variable"
+    info "     e.g. ${LIGHT_GREEN}TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 digio list keys${NC}"
+    info "\nIf you have no idea what we are talking about, please check out:"
+    info "   https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2"
+    info "\nPlease note that 983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 is only an example,"
+    info "and your token will be much different"
+    info "\n"
     exit 1
   fi
 }
@@ -287,11 +302,39 @@ do_ls_keys()
   info "$ANSWER"
 }
 
+do_init()
+{
+
+  if [[ -e ".digio" ]]; then
+    warn "Digio already initialized, take a look in .digio"
+  else
+  info "Initalizing digio..."
+printf "%b" "# digio $VERSION
+# Provide your Digital Ocean TOKEN
+# https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2
+#
+# TOKEN=XXXX
+#
+# You can provide your desired SSH_KEY ID for password login
+# https://developers.digitalocean.com/documentation/v2/#ssh-keys
+#
+# You can get more information about your keys by running
+#  > digio list keys
+#
+# SSH_KEYS=[1234, 4567]
+" > ".digio"
+  fi
+
+}
+
 #--------------------
 # COMMAND LINE PARSER
 #--------------------
 
 case "$1" in
+"init")
+  do_init
+  ;;
 "create")
   do_create $2
   ;;
