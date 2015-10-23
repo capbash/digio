@@ -170,6 +170,16 @@ do_help()
 # API CALLS
 #--------------------
 
+read_config()
+{
+  if [[ -e ".dog" ]]; then
+    debug "Reading in configs from .dog"
+    . .dog
+  else
+    debug "No .dog file, skippping"
+  fi
+}
+
 do_verify_token()
 {
   if [[ "$1" = "" ]]; then
@@ -196,7 +206,7 @@ do_create()
   REGION=${REGION-tor1}
   SIZE=${SIZE-512mb}
   IMAGE=${IMAGE-ubuntu-14-04-x64}
-  SSH_KEYS=${SSH_KEYS-default}
+  SSH_KEYS=${SSH_KEYS-""}
   BACKUPS=${BACKUPS-false}
   IPV6=${IPV6-true}
   USER_DATA=${USER_DATA-null}
@@ -205,12 +215,13 @@ do_create()
 
   do_verify_token $TOKEN
 
-  info "Creating a new droplet $NAME ($REGION, $SIZE, $IMAGE)"
-
-  if [[ "$SSH_KEYS" = "default" ]]; then
-    error "Please provide your SSH_KEY 'ID', default not yet supported"
-    exit 1
+  if [[ "$SSH_KEYS" = "" ]]; then
+    SSH_OUTPUT=""
+  else
+    SSH_OUTPUT="\"ssh_keys\": $SSH_KEYS, "
   fi
+
+  info "Creating a new droplet $NAME ($REGION, $SIZE, $IMAGE)"
 
   debug "  -- NAME=$NAME"
   debug "  -- REGION=$REGION"
@@ -222,7 +233,7 @@ do_create()
   debug "  -- USER_DATA=$USER_DATA"
   debug "  -- PRIVATE_NETWORKING=$PRIVATE_NETWORKING"
   ANSWER=$(curl -X POST $DROPLET_URL \
-           -d "{\"name\":\"$NAME\", \"region\":\"$REGION\",\"size\":\"$SIZE\",\"image\":\"$IMAGE\", \"ssh_keys\": [ $SSH_KEYS ], \"backups\": $BACKUPS, \"ipv6\": $IPV6, \"user_data\": $USER_DATA, \"private_networking\": $PRIVATE_NETWORKING}" \
+           -d "{\"name\":\"$NAME\", \"region\":\"$REGION\",\"size\":\"$SIZE\",\"image\":\"$IMAGE\", $SSH_OUTPUT\"backups\": $BACKUPS, \"ipv6\": $IPV6, \"user_data\": $USER_DATA, \"private_networking\": $PRIVATE_NETWORKING}" \
            -H "Authorization: Bearer $TOKEN" \
            -H "Content-Type: application/json" 2> $LOGFILE)
   if [ $? -ne 0 ] ; then
@@ -321,6 +332,7 @@ printf "%b" "# dog $VERSION
 # You can get more information about your keys by running
 #  > dog list keys
 #
+# It should be provided as a list, do don't forget your square brackets
 # SSH_KEYS=[1234, 4567]
 " > ".dog"
   fi
@@ -331,6 +343,7 @@ printf "%b" "# dog $VERSION
 # COMMAND LINE PARSER
 #--------------------
 
+read_config
 case "$1" in
 "init")
   do_init
