@@ -1,4 +1,4 @@
-dog
+dio
 ==============
 
 A bash implementation of the [Digital Ocean API](https://developers.digitalocean.com/documentation/v2/)
@@ -8,22 +8,22 @@ A bash implementation of the [Digital Ocean API](https://developers.digitalocean
 To install from scratch, run
 
 ```bash
-curl -s https://raw.githubusercontent.com/capbash/do/master/dog-installer | bash
+curl -s https://raw.githubusercontent.com/capbash/do/master/dio-installer | bash
 ```
 
-This will install capbash into /usr/local/bin/dog.  To install it somewhere else, for example:
+This will install capbash into /usr/local/bin/dio.  To install it somewhere else, for example:
 
 ```bash
-curl -s https://raw.githubusercontent.com/capbash/do/master/dog-installer | bash -s -- --path ~/.bin
+curl -s https://raw.githubusercontent.com/capbash/do/master/dio-installer | bash -s -- --path ~/.bin
 ```
 
 If you don't trust this project, please don't pipe into bash, and instead download the file,
 inspect it and run it directly.
 
-If you already have dog and want to upgrade to the altest, please run
+If you already have dio and want to upgrade to the altest, please run
 
 ```
-dog update-self
+dio update-self
 ```
 
 # Getting Started #
@@ -31,10 +31,10 @@ dog update-self
 First let's initialize the configs
 
 ```
-dog init
+dio init
 ```
 
-This will create a .dog file in the local directory, and you will need to
+This will create a .dio file in the local directory, and you will need to
 specify two important pieces of information.
 
 * TOKEN
@@ -43,7 +43,7 @@ specify two important pieces of information.
 Here's the default config file
 
 ```
-# dog v0.10
+# dio v0.10
 # Provide your Digital Ocean TOKEN
 # https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2
 #
@@ -53,7 +53,7 @@ Here's the default config file
 # https://developers.digitalocean.com/documentation/v2/#ssh-keys
 #
 # You can get more information about your keys by running
-#  > dog list keys
+#  > dio list keys
 #
 # It should be provided as a list, do don't forget your square brackets
 # SSH_KEYS=[1234, 4567]
@@ -64,7 +64,7 @@ Uncomment the TOKEN and put in your tokens value (the above is fake, so don't bo
 Once that's in place, let's create a new droplet
 
 ```
-dog create drop1
+dio create drop1
 ```
 
 If everything was setup correctly, you should see a message like
@@ -78,7 +78,7 @@ Reply: {"droplet":{"id":1234,"name":"drop1","memory":512,"vcpus":1,"disk":20,"lo
 Using the droplet id above (e.g. 1234), we could delete the droplet if it's no longer needed
 
 ```
-dog delete 1234
+dio delete 1234
 ```
 
 
@@ -88,7 +88,7 @@ Here's what is currently available
 
 ```
 =============================
- dog v0.10 A Bash Implementation
+ dio v0.10 A Bash Implementation
  Of the Digital Ocean API
 
  More information about the API at
@@ -98,7 +98,7 @@ Here's what is currently available
 
 Usage
 
-  dog [action]
+  dio [action]
 
 Project Setup
 
@@ -117,12 +117,12 @@ API Queries
 Other Actions
 
   update-self   - Upgrade to latest version
-  version       - Display just version information, like 'dog v0.10'
+  version       - Display just version information, like 'dio v0.10'
   help          - Show this message
 
 
 For reporting issues, please contact aforward@gmail.com, or
-reporting directly against the project at https://github.com/capbash/dog
+reporting directly against the project at https://github.com/capbash/dio
 ```
 
 
