@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.8
+VERSION=v0.9
 API_URL=https://api.digitalocean.com/v2
 DROPLET_URL=$API_URL/droplets
 
@@ -107,6 +107,12 @@ install_digitalocean()
     ./bits/bootstrap/bootstrap
   )
 }
+
+internal_version()
+{
+  cat $1 | grep ^VERSION= | awk -F'=' '{print $2}'
+}
+
 
 usage()
 {
@@ -366,15 +372,14 @@ case "$1" in
   ;;
 "update-self")
   current_digitalocean_filename=$(which dog)
-  OLD_VERION=`dog version`
-  curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dog/master/dog
-  NEW_VERSION=`dog version`
-  current_digitalocean_filename=$(which dog)
+  OLD_VERSION=$(internal_version $current_digitalocean_filename)
+  CURLOPT_FRESH_CONNECT=true curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dog/master/dog
+  NEW_VERSION=$(internal_version $current_digitalocean_filename)
 
-  if [[ "$OLD_VERION" = "$NEW_VERSION" ]]; then
+  if [[ "$OLD_VERSION" = "$NEW_VERSION" ]]; then
     info "Already at the latest version $NEW_VERSION (${current_digitalocean_filename})"
   else
-    info "Updated ${current_digitalocean_filename} to $NEW_VERSION (from $OLD_VERION)"
+    info "Updated ${current_digitalocean_filename} to $NEW_VERSION (from $OLD_VERSION)"
   fi
   ;;
 *)
