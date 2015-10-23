@@ -112,7 +112,7 @@ usage()
 {
   printf "%b" "${BLUE}
 =============================
- DIGIO $VERSION A Bash Implementation
+ dog $VERSION A Bash Implementation
  Of the Digital Ocean API
 
  More information about the API at
@@ -122,7 +122,7 @@ ${NC}
 
 Usage
 
-  ${BLUE}digio${NC} ${LIGHT_GREEN}[action]${NC}
+  ${BLUE}dog${NC} ${LIGHT_GREEN}[action]${NC}
 
 Project Setup
 
@@ -141,12 +141,12 @@ API Queries
 Other Actions
 
   ${LIGHT_GREEN}update-self${NC}   ${DARK_GREY}- Upgrade to latest version${NC}
-  ${LIGHT_GREEN}version${NC}       ${DARK_GREY}- Display just version information, like 'DIGIO $VERSION'${NC}
+  ${LIGHT_GREEN}version${NC}       ${DARK_GREY}- Display just version information, like 'dog $VERSION'${NC}
   ${LIGHT_GREEN}help${NC}          ${DARK_GREY}- Show this message${NC}
 
 ${LIGHT_GREY}
 For reporting issues, please contact aforward@gmail.com, or
-reporting directly against the project at https://github.com/capbash/digio
+reporting directly against the project at https://github.com/capbash/dog
 ${NC}
 "
 }
@@ -175,11 +175,11 @@ do_verify_token()
   if [[ "$1" = "" ]]; then
     warn "\nWe were unable to find your Digital Ocean TOKEN, PLEASE TAKE ACTION BELOW.\n"
     info "To provide you token you have have a few options...\n"
-    info "  1) Create a .digio config file and edit it to contain your token.\n"
-    info "     e.g. ${LIGHT_GREEN}digio init${NC}"
-    info "          ${LIGHT_GREEN}echo \"TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787\" >> .digio${NC}\n"
+    info "  1) Create a .dog config file and edit it to contain your token.\n"
+    info "     e.g. ${LIGHT_GREEN}dog init${NC}"
+    info "          ${LIGHT_GREEN}echo \"TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787\" >> .dog${NC}\n"
     info "  2) Put your <TOKEN VALUE> in a TOKEN variable"
-    info "     e.g. ${LIGHT_GREEN}TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 digio list keys${NC}"
+    info "     e.g. ${LIGHT_GREEN}TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 dog list keys${NC}"
     info "\nIf you have no idea what we are talking about, please check out:"
     info "   https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2"
     info "\nPlease note that 983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 is only an example,"
@@ -201,7 +201,7 @@ do_create()
   IPV6=${IPV6-true}
   USER_DATA=${USER_DATA-null}
   PRIVATE_NETWORKING=${PRIVATE_NETWORKING-true}
-  LOGFILE=${LOGFILE-/tmp/digio.log}
+  LOGFILE=${LOGFILE-/tmp/dog.log}
 
   do_verify_token $TOKEN
 
@@ -238,7 +238,7 @@ do_delete()
 {
   ID=$1
   TOKEN=${TOKEN}
-  LOGFILE=${LOGFILE-/tmp/digio.log}
+  LOGFILE=${LOGFILE-/tmp/dog.log}
 
   info "Deleting a droplet $ID"
   ANSWER=$(curl -X DELETE $DROPLET_URL/$ID \
@@ -271,7 +271,7 @@ do_list()
 do_ls_droplets()
 {
   TOKEN=${TOKEN}
-  LOGFILE=${LOGFILE-/tmp/digio.log}
+  LOGFILE=${LOGFILE-/tmp/dog.log}
 
   ANSWER=$(curl -X GET $DROPLET_URL \
            -H "Authorization: Bearer $TOKEN" \
@@ -288,7 +288,7 @@ do_ls_droplets()
 do_ls_keys()
 {
   TOKEN=${TOKEN}
-  LOGFILE=${LOGFILE-/tmp/digio.log}
+  LOGFILE=${LOGFILE-/tmp/dog.log}
 
   ANSWER=$(curl -X GET $API_URL/account/keys \
            -H "Authorization: Bearer $TOKEN" \
@@ -305,11 +305,11 @@ do_ls_keys()
 do_init()
 {
 
-  if [[ -e ".digio" ]]; then
-    warn "Digio already initialized, take a look in .digio"
+  if [[ -e ".dog" ]]; then
+    warn "dog already initialized, take a look in .dog"
   else
-  info "Initalizing digio..."
-printf "%b" "# digio $VERSION
+  info "Initalizing dog..."
+printf "%b" "# dog $VERSION
 # Provide your Digital Ocean TOKEN
 # https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2
 #
@@ -319,10 +319,10 @@ printf "%b" "# digio $VERSION
 # https://developers.digitalocean.com/documentation/v2/#ssh-keys
 #
 # You can get more information about your keys by running
-#  > digio list keys
+#  > dog list keys
 #
 # SSH_KEYS=[1234, 4567]
-" > ".digio"
+" > ".dog"
   fi
 
 }
@@ -348,15 +348,15 @@ case "$1" in
   do_help $2
   ;;
 "version")
-  echo -e "${BLUE}DIGIO ${VERSION}${NC}"
+  echo -e "${BLUE}dog ${VERSION}${NC}"
   exit 0
   ;;
 "update-self")
-  current_digitalocean_filename=$(which digio)
-  OLD_VERION=`digio version`
-  curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/digio/master/digio
-  NEW_VERSION=`digio version`
-  current_digitalocean_filename=$(which digio)
+  current_digitalocean_filename=$(which dog)
+  OLD_VERION=`dog version`
+  curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dog/master/dog
+  NEW_VERSION=`dog version`
+  current_digitalocean_filename=$(which dog)
 
   if [[ "$OLD_VERION" = "$NEW_VERSION" ]]; then
     info "Already at the latest version $NEW_VERSION (${current_digitalocean_filename})"

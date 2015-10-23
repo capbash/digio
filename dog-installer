@@ -19,13 +19,13 @@ digitalocean_parse_params()
         fi
         ;;
 
-      (--digio)
+      (--dog)
         if [[ -n "${1:-}" ]]
         then
           digitalocean_filename="$1"
           shift
         else
-          fail "--digio must be followed by a filename, e.g. /usr/local/bin/digio"
+          fail "--dog must be followed by a filename, e.g. /usr/local/bin/dog"
         fi
         ;;
 
@@ -34,14 +34,14 @@ digitalocean_parse_params()
   done
 
   digitalocean_path=${digitalocean_path-/usr/local/bin}
-  digitalocean_filename=${digitalocean_filename-${digitalocean_path}/digio}
+  digitalocean_filename=${digitalocean_filename-${digitalocean_path}/dog}
 }
 
 do_install()
 {
   digitalocean_parse_params "$@"
   echo "Installing do into \"$digitalocean_filename\""
-  curl -s -o "$digitalocean_filename" https://raw.githubusercontent.com/capbash/digio/master/digio
+  curl -s -o "$digitalocean_filename" https://raw.githubusercontent.com/capbash/dog/master/dog
   chmod 755 "${digitalocean_filename}"
   echo "Done, to uninstall 'rm \"${digitalocean_filename}\"'."
 }
