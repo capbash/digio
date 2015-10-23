@@ -40,7 +40,7 @@ digitalocean_parse_params()
 do_install()
 {
   digitalocean_parse_params "$@"
-  echo "Installing do into \"$digitalocean_filename\""
+  echo "Installing dog into \"$digitalocean_filename\""
   curl -s -o "$digitalocean_filename" https://raw.githubusercontent.com/capbash/dog/master/dog
   chmod 755 "${digitalocean_filename}"
   echo "Done, to uninstall 'rm \"${digitalocean_filename}\"'."
