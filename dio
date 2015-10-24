@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-VERSION=v0.12
+VERSION=v0.13
 API_URL=https://api.digitalocean.com/v2
-DROPLET_URL=$API_URL/droplets
 
 #--------------------
 # LOGGING SECTION
@@ -143,6 +142,8 @@ API Queries
 
   ${LIGHT_GREEN}list keys${NC}     ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
   ${LIGHT_GREEN}list droplets${NC} ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
+  ${LIGHT_GREEN}info <ID>${NC}     ${DARK_GREY}- List details about your droplet${NC}
+
 
 Other Actions
 
@@ -349,26 +350,30 @@ NORMALIZE_SOLIDUS=1
 # API CALLS
 #--------------------
 
-lookup_droplets()
+get_call()
 {
   local TOKEN=${TOKEN}
   local LOGFILE=${LOGFILE-/tmp/dio.log}
 
-  local ANSWER=$(curl -X GET $DROPLET_URL \
+  local ANSWER=$(curl -X GET $API_URL/$1 \
                  -H "Authorization: Bearer $TOKEN" \
                  -H "Content-Type: application/json" 2> $LOGFILE)
   echo $ANSWER
 }
 
+lookup_droplets()
+{
+  get_call "droplets"
+}
+
+lookup_droplet()
+{
+  get_call "droplets/$1"
+}
+
 lookup_keys()
 {
-  local TOKEN=${TOKEN}
-  local LOGFILE=${LOGFILE-/tmp/dio.log}
-
-  local ANSWER=$(curl -X GET $API_URL/account/keys \
-                 -H "Authorization: Bearer $TOKEN" \
-                 -H "Content-Type: application/json" 2> $LOGFILE)
-  echo $ANSWER
+  get_call "account/keys"
 }
 
 action_create()
@@ -404,7 +409,7 @@ action_create()
   debug "  -- IPV6=$IPV6"
   debug "  -- USER_DATA=$USER_DATA"
   debug "  -- PRIVATE_NETWORKING=$PRIVATE_NETWORKING"
-  ANSWER=$(curl -X POST $DROPLET_URL \
+  ANSWER=$(curl -X POST $API_URL/droplets \
            -d "{\"name\":\"$NAME\", \"region\":\"$REGION\",\"size\":\"$SIZE\",\"image\":\"$IMAGE\", $SSH_OUTPUT\"backups\": $BACKUPS, \"ipv6\": $IPV6, \"user_data\": $USER_DATA, \"private_networking\": $PRIVATE_NETWORKING}" \
            -H "Authorization: Bearer $TOKEN" \
            -H "Content-Type: application/json" 2> $LOGFILE)
@@ -422,7 +427,7 @@ action_delete()
   local TOKEN=${TOKEN}
   local LOGFILE=${LOGFILE-/tmp/dio.log}
 
-  local ANSWER=$(curl -X DELETE $DROPLET_URL/$ID \
+  local ANSWER=$(curl -X DELETE $API_URL/droplets/$ID \
                    -H "Authorization: Bearer $TOKEN" \
                    -H "Content-Type: application/json" 2> $LOGFILE)
 
@@ -475,6 +480,15 @@ do_list()
     do_ls_keys
     ;;
   esac
+}
+
+do_info()
+{
+  ID=$1
+  ANSWER=$(lookup_droplet $ID)
+  handle_error $? "$ANSWER" "Unable to get info about droplet $ID"
+  OUTPUT=$(process "$ANSWER")
+  notify "$OUTPUT\n"
 }
 
 do_ls_droplets()
@@ -556,6 +570,9 @@ case "$1" in
   ;;
 "list")
   do_list $2
+  ;;
+"info")
+  do_info $2
   ;;
 "help")
   do_help $2
