@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.13
+VERSION=v0.14
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -137,6 +137,7 @@ API Actions.
 
   ${LIGHT_GREEN}create${NC}        ${DARK_GREY}- Create a new digitalocean droplet (by NAME)${NC}
   ${LIGHT_GREEN}delete${NC}        ${DARK_GREY}- Delete a new digitalocean droplet (by ID)${NC}
+  ${LIGHT_GREEN}ssh <ID>${NC}      ${DARK_GREY}- SSH into your droploet${NC}
 
 API Queries
 
@@ -527,6 +528,15 @@ do_delete()
   fi
 }
 
+do_ssh()
+{
+  ID=$1
+  ANSWER=$(lookup_droplet $ID)
+  IP=$(process "$ANSWER" | grep 'networks' | grep 'v4' | grep 'ip_address' | grep ',1,' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//')
+  debug "Calling ssh root@$IP"
+  ssh root@$IP
+}
+
 do_init()
 {
 
@@ -567,6 +577,9 @@ case "$1" in
   ;;
 "delete")
   do_delete $2
+  ;;
+"ssh")
+  do_ssh $2
   ;;
 "list")
   do_list $2
