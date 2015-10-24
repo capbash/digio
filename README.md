@@ -122,7 +122,7 @@ Other Actions
 
 
 For reporting issues, please contact aforward@gmail.com, or
-reporting directly against the project at https://github.com/capbash/dio
+report directly against the project at https://github.com/capbash/dio
 ```
 
 
