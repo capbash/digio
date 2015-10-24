@@ -131,26 +131,29 @@ Usage
 
 Project Setup
 
-  ${LIGHT_GREEN}init${NC}          ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
+  ${LIGHT_GREEN}init${NC}           ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
 
 API Actions.
 
-  ${LIGHT_GREEN}create${NC}        ${DARK_GREY}- Create a new digitalocean droplet (by NAME)${NC}
-  ${LIGHT_GREEN}delete${NC}        ${DARK_GREY}- Delete a new digitalocean droplet (by ID)${NC}
-  ${LIGHT_GREEN}ssh <ID>${NC}      ${DARK_GREY}- SSH into your droploet${NC}
+  ${LIGHT_GREEN}create${NC}         ${DARK_GREY}- Create a new digitalocean droplet (by NAME)${NC}
+  ${LIGHT_GREEN}power on <ID>${NC}  ${DARK_GREY}- Start your droplet${NC}
+  ${LIGHT_GREEN}power off <ID>${NC} ${DARK_GREY}- Turn off your droplet${NC}
+  ${LIGHT_GREEN}delete${NC}         ${DARK_GREY}- Delete a new digitalocean droplet (by ID)${NC}
+  ${LIGHT_GREEN}ssh <ID>${NC}       ${DARK_GREY}- SSH into your droploet${NC}
 
 API Queries
 
-  ${LIGHT_GREEN}list keys${NC}     ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
-  ${LIGHT_GREEN}list droplets${NC} ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
-  ${LIGHT_GREEN}info <ID>${NC}     ${DARK_GREY}- List details about your droplet${NC}
+  ${LIGHT_GREEN}list keys${NC}      ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
+  ${LIGHT_GREEN}list droplets${NC}  ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
+  ${LIGHT_GREEN}list images${NC}    ${DARK_GREY}- List all private images${NC}
 
+  ${LIGHT_GREEN}info <ID>${NC}      ${DARK_GREY}- List details about your droplet${NC}
 
 Other Actions
 
-  ${LIGHT_GREEN}update-self${NC}   ${DARK_GREY}- Upgrade to latest version${NC}
-  ${LIGHT_GREEN}version${NC}       ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
-  ${LIGHT_GREEN}help${NC}          ${DARK_GREY}- Show this message${NC}
+  ${LIGHT_GREEN}update-self${NC}    ${DARK_GREY}- Upgrade to latest version${NC}
+  ${LIGHT_GREEN}version${NC}        ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
+  ${LIGHT_GREEN}help${NC}           ${DARK_GREY}- Show this message${NC}
 
 ${LIGHT_GREY}
 For reporting issues, please contact aforward@gmail.com, or
@@ -362,6 +365,19 @@ get_call()
   echo $ANSWER
 }
 
+post_action()
+{
+  local ACTION=$2
+  local TOKEN=${TOKEN}
+  local LOGFILE=${LOGFILE-/tmp/dio.log}
+
+  local ANSWER=$(curl -X POST $API_URL/$1 \
+                 -d "{\"type\": \"$ACTION\"}" \
+                 -H "Authorization: Bearer $TOKEN" \
+                 -H "Content-Type: application/json" 2> $LOGFILE)
+  echo $ANSWER
+}
+
 lookup_droplets()
 {
   get_call "droplets"
@@ -375,6 +391,11 @@ lookup_droplet()
 lookup_keys()
 {
   get_call "account/keys"
+}
+
+lookup_images()
+{
+  get_call "images?page=1&per_page=100&private=true"
 }
 
 action_create()
@@ -480,6 +501,9 @@ do_list()
   "keys")
     do_ls_keys
     ;;
+  "images")
+    do_ls_images
+    ;;
   esac
 }
 
@@ -509,6 +533,25 @@ do_ls_keys()
   OUTPUT=$(process "$ANSWER" | grep 'id\|name' | awk -F' ' '{print $2}')
 
   notify "\nAvailable SSH Keys Include:\n"
+  notify "$OUTPUT\n"
+}
+
+do_ls_images()
+{
+  ANSWER=$(lookup_images)
+  handle_error $? "$ANSWER" "Unable to list images"
+  OUTPUT=$(process "$ANSWER")
+
+  notify "\nAvailable Images:\n"
+  notify "$OUTPUT\n"
+}
+
+do_power()
+{
+  ON_OR_OFF=$1
+  ID=$2
+  ANSWER=$(post_action droplets/$ID/actions "power_$ON_OR_OFF")
+  OUTPUT=$(process "$ANSWER")
   notify "$OUTPUT\n"
 }
 
@@ -574,6 +617,9 @@ case "$1" in
   ;;
 "create")
   action_create $2
+  ;;
+"power")
+  do_power $2 $3
   ;;
 "delete")
   do_delete $2
