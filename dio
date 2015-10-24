@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.11
+VERSION=v0.12
 API_URL=https://api.digitalocean.com/v2
 DROPLET_URL=$API_URL/droplets
 
@@ -567,14 +567,9 @@ case "$1" in
 "update-self")
   current_digitalocean_filename=$(which dio)
   OLD_VERSION=$(internal_version $current_digitalocean_filename)
+  info "Updating to latest version of dio in ${current_digitalocean_filename}"
+  info "When done run '${BLUE}dio version${NC}' for the new version."
   CURLOPT_FRESH_CONNECT=true curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dio/master/dio
-  NEW_VERSION=$(internal_version $current_digitalocean_filename)
-
-  if [[ "$OLD_VERSION" = "$NEW_VERSION" ]]; then
-    info "Already at the latest version $NEW_VERSION (${current_digitalocean_filename})"
-  else
-    info "Updated ${current_digitalocean_filename} to $NEW_VERSION (from $OLD_VERSION)"
-  fi
   ;;
 *)
   usage
