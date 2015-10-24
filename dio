@@ -131,29 +131,31 @@ Usage
 
 Project Setup
 
-  ${LIGHT_GREEN}init${NC}           ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
+  ${LIGHT_GREEN}init${NC}                 ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
 
 API Actions.
 
-  ${LIGHT_GREEN}create${NC}         ${DARK_GREY}- Create a new digitalocean droplet (by NAME)${NC}
-  ${LIGHT_GREEN}power on <ID>${NC}  ${DARK_GREY}- Start your droplet${NC}
-  ${LIGHT_GREEN}power off <ID>${NC} ${DARK_GREY}- Turn off your droplet${NC}
-  ${LIGHT_GREEN}delete${NC}         ${DARK_GREY}- Delete a new digitalocean droplet (by ID)${NC}
-  ${LIGHT_GREEN}ssh <ID>${NC}       ${DARK_GREY}- SSH into your droploet${NC}
+  ${LIGHT_GREEN}create <name>${NC}        ${DARK_GREY}- Create a new droplet (by <name>)${NC}
+  ${LIGHT_GREEN}clone <IMAGE> <name>${NC} ${DARK_GREY}- Create a new droplet based on the provided <IMAGE> (by <name>)${NC}
+  ${LIGHT_GREEN}power on <ID>${NC}        ${DARK_GREY}- Start your droplet${NC}
+  ${LIGHT_GREEN}power off <ID>${NC}       ${DARK_GREY}- Turn off your droplet${NC}
+  ${LIGHT_GREEN}snapshot <ID> <name>${NC} ${DARK_GREY}- Create a snapshot of <ID> called <name>${NC}
+  ${LIGHT_GREEN}delete${NC}               ${DARK_GREY}- Delete a new digitalocean droplet (by ID)${NC}
+  ${LIGHT_GREEN}ssh <ID>${NC}             ${DARK_GREY}- SSH into your droploet${NC}
 
 API Queries
 
-  ${LIGHT_GREEN}list keys${NC}      ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
-  ${LIGHT_GREEN}list droplets${NC}  ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
-  ${LIGHT_GREEN}list images${NC}    ${DARK_GREY}- List all private images${NC}
+  ${LIGHT_GREEN}list keys${NC}            ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
+  ${LIGHT_GREEN}list droplets${NC}        ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
+  ${LIGHT_GREEN}list images${NC}          ${DARK_GREY}- List all private images${NC}
 
-  ${LIGHT_GREEN}info <ID>${NC}      ${DARK_GREY}- List details about your droplet${NC}
+  ${LIGHT_GREEN}info <ID>${NC}            ${DARK_GREY}- List details about your droplet${NC}
 
 Other Actions
 
-  ${LIGHT_GREEN}update-self${NC}    ${DARK_GREY}- Upgrade to latest version${NC}
-  ${LIGHT_GREEN}version${NC}        ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
-  ${LIGHT_GREEN}help${NC}           ${DARK_GREY}- Show this message${NC}
+  ${LIGHT_GREEN}update-self${NC}          ${DARK_GREY}- Upgrade to latest version${NC}
+  ${LIGHT_GREEN}version${NC}              ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
+  ${LIGHT_GREEN}help${NC}                 ${DARK_GREY}- Show this message${NC}
 
 ${LIGHT_GREY}
 For reporting issues, please contact aforward@gmail.com, or
@@ -437,9 +439,29 @@ action_create()
            -H "Content-Type: application/json" 2> $LOGFILE)
 
   handle_error $? "$ANSWER" "Unable to create droplet $NAME ($REGION, $SIZE, $IMAGE)"
-  OUTPUT=$(process "$ANSWER")
   OUTPUT=$(process "$ANSWER" | grep 'id\|name'  | grep -v 'kernel' | grep -v 'image' | grep -v 'region' | grep -v 'action' | awk -F' ' '{print $2}')
 
+  info "$OUTPUT"
+}
+
+action_snapshot()
+{
+  ID=$1
+  NAME=$2
+  TOKEN=${TOKEN}
+  LOGFILE=${LOGFILE-/tmp/dio.log}
+
+  do_verify_token $TOKEN
+
+  info "Creating a snapshot $NAME ($ID)"
+
+  ANSWER=$(curl -X POST $API_URL/droplets/$ID/actions \
+           -d "{\"type\":\"snapshot\", \"name\":\"$NAME\"}" \
+           -H "Authorization: Bearer $TOKEN" \
+           -H "Content-Type: application/json" 2> $LOGFILE)
+
+  handle_error $? "$ANSWER" "Unable to create droplet $NAME ($REGION, $SIZE, $IMAGE)"
+  OUTPUT=$(process "$ANSWER")
   info "$OUTPUT"
 }
 
@@ -617,6 +639,12 @@ case "$1" in
   ;;
 "create")
   action_create $2
+  ;;
+"clone")
+  IMAGE=$2 action_create $3
+  ;;
+"snapshot")
+  action_snapshot $2 $3
   ;;
 "power")
   do_power $2 $3
