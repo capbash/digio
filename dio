@@ -718,7 +718,8 @@ case "$1" in
   do_delete $@
   ;;
 "ssh")
-  do_ssh $2
+  shift
+  do_ssh $@
   ;;
 "list")
   do_list $2
