@@ -133,6 +133,15 @@ Project Setup
 
   ${LIGHT_GREEN}init${NC}                 ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
 
+Account
+
+  ${LIGHT_GREEN}account${NC}            ${DARK_GREY}- To retrieve a list of all of the domains in your account${NC}
+
+Domains
+
+  ${LIGHT_GREEN}domains${NC}            ${DARK_GREY}- List all domains${NC}
+
+
 API Actions.
 
   ${LIGHT_GREEN}create <name>${NC}        ${DARK_GREY}- Create a new droplet (by <name>)${NC}
@@ -634,6 +643,12 @@ printf "%b" "# dio $VERSION
 
 read_config
 case "$1" in
+"account")
+  get_call "account"
+  ;;
+"domains")
+  get_call "domains"
+  ;;
 "init")
   do_init
   ;;
