@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.15.1
+VERSION=v0.15.2
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
