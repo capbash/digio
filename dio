@@ -144,10 +144,19 @@ Domains
   ${LIGHT_GREEN}create domain <name> <ip>${NC}   ${DARK_GREY}- Create new domain <name> attached to <ip>${NC}
   ${LIGHT_GREEN}delete domain <name>${NC}        ${DARK_GREY}- Delete the domain <name>${NC}
 
-API Actions.
+Domain Records
 
+  N/A
+
+Droplets
+
+  ${LIGHT_GREEN}droplets${NC}             ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
+  ${LIGHT_GREEN}droplet <id>${NC}         ${DARK_GREY}- List details about a droplet by <id>${NC}
   ${LIGHT_GREEN}create <name>${NC}        ${DARK_GREY}- Create a new droplet (by <name>)${NC}
   ${LIGHT_GREEN}clone <IMAGE> <name>${NC} ${DARK_GREY}- Create a new droplet based on the provided <IMAGE> (by <name>)${NC}
+
+Droplet Actions
+
   ${LIGHT_GREEN}power on <ID>${NC}        ${DARK_GREY}- Start your droplet${NC}
   ${LIGHT_GREEN}power off <ID>${NC}       ${DARK_GREY}- Turn off your droplet${NC}
   ${LIGHT_GREEN}snapshot <ID> <name>${NC} ${DARK_GREY}- Create a snapshot of <ID> called <name>${NC}
@@ -574,6 +583,17 @@ ls_droplets()
   notify "$OUTPUT\n"
 }
 
+ls_droplet()
+{
+  local ID=$1
+  ANSWER=$(get_call "droplets/$ID")
+  handle_error $? "$ANSWER" "Unable to list droplet $ID"
+  OUTPUT=$(process "$ANSWER" | grep 'id\|name\|status' | grep -v 'kernel' | grep -v 'image' | grep -v 'region' | awk -F' ' '{print $2}')
+
+  notify "\nDroplet Info ($ID):\n"
+  notify "$OUTPUT\n"
+}
+
 ls_keys()
 {
   ANSWER=$(get_call "account/keys")
@@ -670,6 +690,12 @@ case "$1" in
   ;;
 "domain")
   get_call "domains/$2"
+  ;;
+"droplets")
+  ls_droplets
+  ;;
+"droplet")
+  ls_droplet "$2"
   ;;
 "init")
   do_init
