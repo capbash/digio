@@ -139,8 +139,10 @@ Account
 
 Domains
 
-  ${LIGHT_GREEN}domains${NC}            ${DARK_GREY}- List all domains${NC}
-
+  ${LIGHT_GREEN}domains${NC}                     ${DARK_GREY}- List all domains${NC}
+  ${LIGHT_GREEN}domain <name>${NC}               ${DARK_GREY}- Retrieve info about domain <name>${NC}
+  ${LIGHT_GREEN}create domain <name> <ip>${NC}   ${DARK_GREY}- Create new domain <name> attached to <ip>${NC}
+  ${LIGHT_GREEN}delete domain <name>${NC}        ${DARK_GREY}- Delete the domain <name>${NC}
 
 API Actions.
 
@@ -365,15 +367,29 @@ NORMALIZE_SOLIDUS=1
 # API CALLS
 #--------------------
 
-get_call()
+curl_call()
 {
+  local METHOD=$1
+  local URL_PATH=$2
+
   local TOKEN=${TOKEN}
   local LOGFILE=${LOGFILE-/tmp/dio.log}
 
-  local ANSWER=$(curl -X GET $API_URL/$1 \
+  debug "About to $METHOD $API_URL/$URL_PATH"
+  local ANSWER=$(curl -X $METHOD $API_URL/$URL_PATH \
                  -H "Authorization: Bearer $TOKEN" \
                  -H "Content-Type: application/json" 2> $LOGFILE)
   echo $ANSWER
+}
+
+get_call()
+{
+  curl_call "GET" "$1"
+}
+
+delete_call()
+{
+  curl_call "DELETE" "$1"
 }
 
 post_action()
@@ -409,7 +425,22 @@ lookup_images()
   get_call "images?page=1&per_page=100&private=true"
 }
 
-action_create()
+do_create()
+{
+  case "$1" in
+  "domain")
+    action_create_domain $2 $3
+    ;;
+  "droplet")
+    action_create_droplet $2
+    ;;
+  *)
+    action_create_droplet $1
+    ;;
+  esac
+}
+
+action_create_droplet()
 {
   TOKEN=${TOKEN}
   NAME=$1
@@ -453,6 +484,25 @@ action_create()
   info "$OUTPUT"
 }
 
+action_create_domain()
+{
+  NAME=$1
+  IP=$2
+
+  TOKEN=${TOKEN}
+  LOGFILE=${LOGFILE-/tmp/dio.log}
+
+  do_verify_token $TOKEN
+  info "Creating a domain $NAME ($IP)"
+  ANSWER=$(curl -X POST $API_URL/domains \
+           -d "{\"name\":\"$NAME\", \"ip_address\":\"$IP\"}" \
+           -H "Authorization: Bearer $TOKEN" \
+           -H "Content-Type: application/json" 2> $LOGFILE)
+  handle_error $? "$ANSWER" "Unable to create domain $NAME ($IP)"
+  OUTPUT=$(process "$ANSWER")
+  info "$OUTPUT"
+}
+
 action_snapshot()
 {
   ID=$1
@@ -474,18 +524,6 @@ action_snapshot()
   info "$OUTPUT"
 }
 
-action_delete()
-{
-  local ID=$1
-  local TOKEN=${TOKEN}
-  local LOGFILE=${LOGFILE-/tmp/dio.log}
-
-  local ANSWER=$(curl -X DELETE $API_URL/droplets/$ID \
-                   -H "Authorization: Bearer $TOKEN" \
-                   -H "Content-Type: application/json" 2> $LOGFILE)
-
-  echo $ANSWER
-}
 
 #--------------------
 # TOOL CALLS
@@ -588,18 +626,19 @@ do_power()
 
 do_delete()
 {
-  ID=$1
-
-  ANSWER=$(action_delete $ID)
-  handle_error $? "$ANSWER" "Unable to delete droplet $ID"
-
-  if [[ "$ANSWER" != "" ]]; then
-    OUTPUT=$(process "$ANSWER")
-    warn "\nUnable to delete droplet $ID, official message below..."
-    warn "  $ANSWER\n"
-  else
-    info "\nDeleted a droplet $ID\n"
-  fi
+  case "$1" in
+  "domain")
+    info "About to delete domain $2 ..."
+    delete_call "domains/$2"
+    ;;
+  "droplet")
+    info "About to delete domain $2 ..."
+    delete_call "domains/$2"
+    ;;
+  *)
+    do_delete "droplet" $1
+    ;;
+  esac
 }
 
 do_ssh()
@@ -649,14 +688,18 @@ case "$1" in
 "domains")
   get_call "domains"
   ;;
+"domain")
+  get_call "domains/$2"
+  ;;
 "init")
   do_init
   ;;
 "create")
-  action_create $2
+  shift
+  do_create $@
   ;;
 "clone")
-  IMAGE=$2 action_create $3
+  IMAGE=$2 action_create_droplet $3
   ;;
 "snapshot")
   action_snapshot $2 $3
@@ -665,7 +708,8 @@ case "$1" in
   do_power $2 $3
   ;;
 "delete")
-  do_delete $2
+  shift
+  do_delete $@
   ;;
 "ssh")
   do_ssh $2
