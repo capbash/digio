@@ -405,42 +405,55 @@ post_action()
   echo $ANSWER
 }
 
-lookup_droplets()
+read_dio_config()
 {
-  get_call "droplets"
+  if [[ -e ".dio" ]]; then
+    debug "Reading in configs from .dio"
+    . .dio
+  else
+    debug "No .dio file, skippping"
+  fi
 }
 
-lookup_droplet()
+verify_token()
 {
-  get_call "droplets/$1"
+  if [[ "$1" = "" ]]; then
+    warn "\nWe were unable to find your Digital Ocean TOKEN, PLEASE TAKE ACTION BELOW.\n"
+    info "To provide you token you have have a few options...\n"
+    info "  1) Create a .dio config file and edit it to contain your token.\n"
+    info "     e.g. ${LIGHT_GREEN}dio init${NC}"
+    info "          ${LIGHT_GREEN}echo \"TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787\" >> .dio${NC}\n"
+    info "  2) Put your <TOKEN VALUE> in a TOKEN variable"
+    info "     e.g. ${LIGHT_GREEN}TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 dio list keys${NC}"
+    info "\nIf you have no idea what we are talking about, please check out:"
+    info "   https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2"
+    info "\nPlease note that 983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 is only an example,"
+    info "and your token will be much different"
+    info "\n"
+    exit 1
+  fi
 }
 
-lookup_keys()
-{
-  get_call "account/keys"
-}
-
-lookup_images()
-{
-  get_call "images?page=1&per_page=100&private=true"
-}
+#--------------------
+# API HELPER FUNCTIONS
+#--------------------
 
 do_create()
 {
   case "$1" in
   "domain")
-    action_create_domain $2 $3
+    create_domain $2 $3
     ;;
   "droplet")
-    action_create_droplet $2
+    create_droplet $2
     ;;
   *)
-    action_create_droplet $1
+    do_create "droplet" $1
     ;;
   esac
 }
 
-action_create_droplet()
+create_droplet()
 {
   TOKEN=${TOKEN}
   NAME=$1
@@ -454,7 +467,7 @@ action_create_droplet()
   PRIVATE_NETWORKING=${PRIVATE_NETWORKING-true}
   LOGFILE=${LOGFILE-/tmp/dio.log}
 
-  do_verify_token $TOKEN
+  verify_token $TOKEN
 
   if [[ "$SSH_KEYS" = "" ]]; then
     SSH_OUTPUT=""
@@ -484,7 +497,7 @@ action_create_droplet()
   info "$OUTPUT"
 }
 
-action_create_domain()
+create_domain()
 {
   NAME=$1
   IP=$2
@@ -492,7 +505,7 @@ action_create_domain()
   TOKEN=${TOKEN}
   LOGFILE=${LOGFILE-/tmp/dio.log}
 
-  do_verify_token $TOKEN
+  verify_token $TOKEN
   info "Creating a domain $NAME ($IP)"
   ANSWER=$(curl -X POST $API_URL/domains \
            -d "{\"name\":\"$NAME\", \"ip_address\":\"$IP\"}" \
@@ -503,14 +516,14 @@ action_create_domain()
   info "$OUTPUT"
 }
 
-action_snapshot()
+do_snapshot()
 {
   ID=$1
   NAME=$2
   TOKEN=${TOKEN}
   LOGFILE=${LOGFILE-/tmp/dio.log}
 
-  do_verify_token $TOKEN
+  verify_token $TOKEN
 
   info "Creating a snapshot $NAME ($ID)"
 
@@ -524,54 +537,20 @@ action_snapshot()
   info "$OUTPUT"
 }
 
-
-#--------------------
-# TOOL CALLS
-#--------------------
-
-read_config()
-{
-  if [[ -e ".dio" ]]; then
-    debug "Reading in configs from .dio"
-    . .dio
-  else
-    debug "No .dio file, skippping"
-  fi
-}
-
-do_verify_token()
-{
-  if [[ "$1" = "" ]]; then
-    warn "\nWe were unable to find your Digital Ocean TOKEN, PLEASE TAKE ACTION BELOW.\n"
-    info "To provide you token you have have a few options...\n"
-    info "  1) Create a .dio config file and edit it to contain your token.\n"
-    info "     e.g. ${LIGHT_GREEN}dio init${NC}"
-    info "          ${LIGHT_GREEN}echo \"TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787\" >> .dio${NC}\n"
-    info "  2) Put your <TOKEN VALUE> in a TOKEN variable"
-    info "     e.g. ${LIGHT_GREEN}TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 dio list keys${NC}"
-    info "\nIf you have no idea what we are talking about, please check out:"
-    info "   https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2"
-    info "\nPlease note that 983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 is only an example,"
-    info "and your token will be much different"
-    info "\n"
-    exit 1
-  fi
-}
-
 do_list()
 {
-  do_verify_token $TOKEN
+  verify_token $TOKEN
   ITEM=${1-droplets}
   debug "Looking up $ITEM"
   case "$ITEM" in
   "droplets")
-    do_ls_droplets
+    ls_droplets
     ;;
   "keys")
-    do_ls_keys
+    ls_keys
     ;;
   "images")
-    do_ls_images
+    ls_images
     ;;
   esac
 }
@@ -579,15 +558,15 @@ do_list()
 do_info()
 {
   ID=$1
-  ANSWER=$(lookup_droplet $ID)
+  ANSWER=$(get_call "droplets/$ID")
   handle_error $? "$ANSWER" "Unable to get info about droplet $ID"
   OUTPUT=$(process "$ANSWER")
   notify "$OUTPUT\n"
 }
 
-do_ls_droplets()
+ls_droplets()
 {
-  ANSWER=$(lookup_droplets)
+  ANSWER=$(get_call "droplets")
   handle_error $? "$ANSWER" "Unable to list droplets"
   OUTPUT=$(process "$ANSWER" | grep 'id\|name\|status' | grep -v 'kernel' | grep -v 'image' | grep -v 'region' | awk -F' ' '{print $2}')
 
@@ -595,9 +574,9 @@ do_ls_droplets()
   notify "$OUTPUT\n"
 }
 
-do_ls_keys()
+ls_keys()
 {
-  ANSWER=$(lookup_keys)
+  ANSWER=$(get_call "account/keys")
   handle_error $? "$ANSWER" "Unable to list keys"
   OUTPUT=$(process "$ANSWER" | grep 'id\|name' | awk -F' ' '{print $2}')
 
@@ -605,9 +584,9 @@ do_ls_keys()
   notify "$OUTPUT\n"
 }
 
-do_ls_images()
+ls_images()
 {
-  ANSWER=$(lookup_images)
+  ANSWER=$(get_call "images?page=1&per_page=100&private=true")
   handle_error $? "$ANSWER" "Unable to list images"
   OUTPUT=$(process "$ANSWER")
 
@@ -644,7 +623,7 @@ do_delete()
 do_ssh()
 {
   ID=$1
-  ANSWER=$(lookup_droplet $ID)
+  ANSWER=$(get_call "droplets/$ID")
   IP=$(process "$ANSWER" | grep 'networks' | grep 'v4' | grep 'ip_address' | grep ',1,' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//')
   debug "Calling ssh root@$IP"
   ssh root@$IP
@@ -680,7 +659,7 @@ printf "%b" "# dio $VERSION
 # COMMAND LINE PARSER
 #--------------------
 
-read_config
+read_dio_config
 case "$1" in
 "account")
   get_call "account"
@@ -699,10 +678,10 @@ case "$1" in
   do_create $@
   ;;
 "clone")
-  IMAGE=$2 action_create_droplet $3
+  IMAGE=$2 create_droplet $3
   ;;
 "snapshot")
-  action_snapshot $2 $3
+  do_snapshot $2 $3
   ;;
 "power")
   do_power $2 $3
