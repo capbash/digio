@@ -611,8 +611,8 @@ do_delete()
     delete_call "domains/$2"
     ;;
   "droplet")
-    info "About to delete domain $2 ..."
-    delete_call "domains/$2"
+    info "About to delete droplet $2 ..."
+    delete_call "droplets/$2"
     ;;
   *)
     do_delete "droplet" $1
@@ -623,10 +623,11 @@ do_delete()
 do_ssh()
 {
   ID=$1
+  shift
   ANSWER=$(get_call "droplets/$ID")
   IP=$(process "$ANSWER" | grep 'networks' | grep 'v4' | grep 'ip_address' | grep ',1,' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//')
   debug "Calling ssh root@$IP"
-  ssh root@$IP
+  ssh root@$IP $@
 }
 
 do_init()
