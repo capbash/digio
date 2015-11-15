@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.16.0
+VERSION=v0.16.1
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -195,6 +195,7 @@ Account
 Actions
 
   ${LIGHT_GREEN}actions${NC}                     ${DARK_GREY}- List all actions on your account${NC}
+  ${LIGHT_GREEN}action <ID>${NC}                 ${DARK_GREY}- List details of a specific action on your account${NC}
 
 Domains
 

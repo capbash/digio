@@ -88,7 +88,7 @@ Here's what is currently available
 
 ```bash
 =============================
- dio v0.15.3 A Bash Implementation
+ dio v0.16.1 A Bash Implementation
  Of the Digital Ocean API
 
  More information about the API at
@@ -111,6 +111,7 @@ Account
 Actions
 
   actions                     - List all actions on your account
+  action <ID>                 - List details of a specific action on your account
 
 Domains
 
@@ -149,7 +150,7 @@ API Queries
 Other Actions
 
   update-self                - Upgrade to latest version
-  version                    - Display just version information, like 'dio v0.15.3'
+  version                    - Display just version information, like 'dio v0.16.1'
   help                       - Show this message
 
 
