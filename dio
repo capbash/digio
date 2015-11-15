@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.15.3
+VERSION=v0.16.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -74,7 +74,6 @@ pp() {
   fi
 }
 
-
 #--------------------
 # INSATLLER
 #--------------------
@@ -112,93 +111,6 @@ internal_version()
   cat $1 | grep ^VERSION= | awk -F'=' '{print $2}'
 }
 
-
-usage()
-{
-  printf "%b" "${BLUE}
-=============================
- dio $VERSION A Bash Implementation
- Of the Digital Ocean API
-
- More information about the API at
- https://developers.digitalocean.com/documentation/v2/
-=============================
-${NC}
-
-Usage
-
-  ${BLUE}dio${NC} ${LIGHT_GREEN}[action]${NC}
-
-Project Setup
-
-  ${LIGHT_GREEN}init${NC}                 ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
-
-Account
-
-  ${LIGHT_GREEN}account${NC}            ${DARK_GREY}- To retrieve a list of all of the domains in your account${NC}
-
-Domains
-
-  ${LIGHT_GREEN}domains${NC}                     ${DARK_GREY}- List all domains${NC}
-  ${LIGHT_GREEN}domain <name>${NC}               ${DARK_GREY}- Retrieve info about domain <name>${NC}
-  ${LIGHT_GREEN}create domain <name> <ip>${NC}   ${DARK_GREY}- Create new domain <name> attached to <ip>${NC}
-  ${LIGHT_GREEN}delete domain <name>${NC}        ${DARK_GREY}- Delete the domain <name>${NC}
-
-Domain Records
-
-  N/A
-
-Droplets
-
-  ${LIGHT_GREEN}droplets${NC}             ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
-  ${LIGHT_GREEN}droplet <id>${NC}         ${DARK_GREY}- List details about a droplet by <id>${NC}
-  ${LIGHT_GREEN}create <name>${NC}        ${DARK_GREY}- Create a new droplet (by <name>)${NC}
-  ${LIGHT_GREEN}clone <IMAGE> <name>${NC} ${DARK_GREY}- Create a new droplet based on the provided <IMAGE> (by <name>)${NC}
-
-Droplet Actions
-
-  ${LIGHT_GREEN}power on <ID>${NC}        ${DARK_GREY}- Start your droplet${NC}
-  ${LIGHT_GREEN}power off <ID>${NC}       ${DARK_GREY}- Turn off your droplet${NC}
-  ${LIGHT_GREEN}snapshot <ID> <name>${NC} ${DARK_GREY}- Create a snapshot of <ID> called <name>${NC}
-  ${LIGHT_GREEN}delete${NC}               ${DARK_GREY}- Delete a new digitalocean droplet (by ID)${NC}
-  ${LIGHT_GREEN}ssh <ID>${NC}             ${DARK_GREY}- SSH into your droploet${NC}
-
-API Queries
-
-  ${LIGHT_GREEN}list keys${NC}            ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
-  ${LIGHT_GREEN}list droplets${NC}        ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
-  ${LIGHT_GREEN}list images${NC}          ${DARK_GREY}- List all private images${NC}
-
-  ${LIGHT_GREEN}info <ID>${NC}            ${DARK_GREY}- List details about your droplet${NC}
-
-Other Actions
-
-  ${LIGHT_GREEN}update-self${NC}          ${DARK_GREY}- Upgrade to latest version${NC}
-  ${LIGHT_GREEN}version${NC}              ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
-  ${LIGHT_GREEN}help${NC}                 ${DARK_GREY}- Show this message${NC}
-
-${LIGHT_GREY}
-For reporting issues, please contact aforward@gmail.com, or
-report directly against the project at https://github.com/capbash/dio
-${NC}
-"
-}
-
-do_help()
-{
-  case "$1" in
-  "create")
-    info "Create a new droplet..."
-    ;;
-  "list")
-    info "Show 'droplets' (default), and 'keys'."
-    ;;
-  *)
-    usage
-    ;;
-  esac
-}
-
 throw () {
   echo "$*" >&2
   exit 1
@@ -217,6 +129,250 @@ handle_error()
     error_all $LOGFILE
     exit 1
   fi
+}
+
+#--------------------
+# HELP
+#--------------------
+
+do_help()
+{
+  case "$1" in
+  "init")
+    help_init
+    ;;
+  "account")
+    help_account
+    ;;
+  "actions")
+    help_actions
+    ;;
+  "action")
+    help_action
+    ;;
+  "domains")
+    help_domains
+    ;;
+  "domain")
+    help_domain
+    ;;
+  "create")
+    info "Create a new droplet..."
+    ;;
+  "list")
+    info "Show 'droplets' (default), and 'keys'."
+    ;;
+  *)
+    help_usage
+    ;;
+  esac
+}
+
+help_usage()
+{
+  printf "%b" "${BLUE}
+=============================
+ dio $VERSION A Bash Implementation
+ Of the Digital Ocean API
+
+ More information about the API at
+ https://developers.digitalocean.com/documentation/v2/
+=============================
+${NC}
+
+Usage
+
+  ${BLUE}dio${NC} ${LIGHT_GREEN}[action]${NC}
+
+Project Setup
+
+  ${LIGHT_GREEN}init${NC}                        ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
+
+Account
+
+  ${LIGHT_GREEN}account${NC}                     ${DARK_GREY}- To retrieve a list of all of the domains in your account${NC}
+
+Actions
+
+  ${LIGHT_GREEN}actions${NC}                     ${DARK_GREY}- List all actions on your account${NC}
+
+Domains
+
+  ${LIGHT_GREEN}domains${NC}                     ${DARK_GREY}- List all domains${NC}
+  ${LIGHT_GREEN}domain <name>${NC}               ${DARK_GREY}- Retrieve info about domain <name>${NC}
+  ${LIGHT_GREEN}create domain <name> <ip>${NC}   ${DARK_GREY}- Create new domain <name> attached to <ip>${NC}
+  ${LIGHT_GREEN}delete domain <name>${NC}        ${DARK_GREY}- Delete the domain <name>${NC}
+
+Domain Records
+
+  N/A
+
+Droplets
+
+  ${LIGHT_GREEN}droplets${NC}                   ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
+  ${LIGHT_GREEN}droplet <id>${NC}               ${DARK_GREY}- List details about a droplet by <id>${NC}
+  ${LIGHT_GREEN}create <name>${NC}              ${DARK_GREY}- Create a new droplet (by <name>)${NC}
+  ${LIGHT_GREEN}clone <IMAGE> <name>${NC}       ${DARK_GREY}- Create a new droplet based on the provided <IMAGE> (by <name>)${NC}
+
+Droplet Actions
+
+  ${LIGHT_GREEN}power on <ID>${NC}              ${DARK_GREY}- Start your droplet${NC}
+  ${LIGHT_GREEN}power off <ID>${NC}             ${DARK_GREY}- Turn off your droplet${NC}
+  ${LIGHT_GREEN}snapshot <ID> <name>${NC}       ${DARK_GREY}- Create a snapshot of <ID> called <name>${NC}
+  ${LIGHT_GREEN}delete${NC}                     ${DARK_GREY}- Delete a new digitalocean droplet (by ID)${NC}
+  ${LIGHT_GREEN}ssh <ID>${NC}                   ${DARK_GREY}- SSH into your droploet${NC}
+
+API Queries
+
+  ${LIGHT_GREEN}list keys${NC}                  ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
+  ${LIGHT_GREEN}list droplets${NC}              ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
+  ${LIGHT_GREEN}list images${NC}                ${DARK_GREY}- List all private images${NC}
+
+  ${LIGHT_GREEN}info <ID>${NC}                  ${DARK_GREY}- List details about your droplet${NC}
+
+Other Actions
+
+  ${LIGHT_GREEN}update-self${NC}                ${DARK_GREY}- Upgrade to latest version${NC}
+  ${LIGHT_GREEN}version${NC}                    ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
+  ${LIGHT_GREEN}help${NC}                       ${DARK_GREY}- Show this message${NC}
+
+${LIGHT_GREY}
+For reporting issues, please contact aforward@gmail.com, or
+report directly against the project at https://github.com/capbash/dio
+${NC}
+"
+}
+
+help_init()
+{
+  printf "%b" "${NC}
+This will initialize your local directory with environment
+variables defaults to make command line operations a little
+more palateble.
+
+  ${LIGHT_GREEN}capbash init${NC}
+
+This call will create a .dio file with placeholders for your
+account; this includes
+
+  ${LIGHT_GREY}# Digital Ocean will provide you with an access token
+  # which authorizes certain activities
+  #
+  # https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2${NC}
+  ${LIGHT_GREEN}TOKEN=XXXX${NC}
+
+  ${LIGHT_GREY}# You can provide your desired SSH_KEY ID for password login
+  # https://developers.digitalocean.com/documentation/v2/#ssh-keys
+  #
+  # You can get more information about your keys by running
+  #  > dio list keys
+  #
+  # It should be provided as a list, do don't forget your square brackets${NC}
+  ${LIGHT_GREEN}SSH_KEYS=[1234, 4567]${NC}
+
+"
+}
+
+help_account()
+{
+  printf "%b" "${NC}
+This will tell you about your account settings.
+
+  ${LIGHT_GREEN}dio account${NC}
+
+For example,
+  ${LIGHT_GREEN}
+  droplet_limit: 25
+  email: me@myemail.com
+  uuid: asfd213asdf
+  email_verified: true
+  status: active${NC}
+
+"
+}
+
+help_domains()
+{
+  printf "%b" "${NC}
+This will tell you about your configured domains
+
+  ${LIGHT_GREEN}dio domains${NC}
+
+Example,
+
+  ${LIGHT_GREEN}domains: mywebsite.com
+  ttl: 1800${NC}
+  ...
+  ${LIGHT_GREEN}domains: anotherwebsite.ca
+  ttl: 1800${NC}
+
+"
+}
+
+help_domain()
+{
+  printf "%b" "${NC}
+This will tell you about a particular domain
+
+  ${LIGHT_GREEN}dio domain <name>${NC}
+
+Example,
+
+  ${LIGHT_GREEN}dio domain mywebsite.com${NC}
+
+Would return information similar to
+
+  ${LIGHT_GREEN}[\"domain\",\"name\"] \"mywebsite.com\"
+  [\"domain\",\"ttl\"]  1800
+  [\"domain\",\"zone_file\"]  \"\$ORIGIN mywebsite.com.
+  \$TTL 1800
+  mywebsite.com. 1800 IN A 192.1.2.3
+  mywebsite.com. 1800 IN NS ns1.digitalocean.com.
+  mywebsite.com. 1800 IN NS ns2.digitalocean.com.
+  mywebsite.com. 1800 IN NS ns3.digitalocean.com.${NC}
+
+"
+}
+
+help_actions()
+{
+  printf "%b" "${NC}
+This will tell you about all actions on your account.
+
+  ${LIGHT_GREEN}PAGE=<n> dio actions${NC}
+
+The ${LIGHT_GREEN}PAGE${NC} variable defaults to 1 if none is provided.
+
+Example actions might be
+
+  ${LIGHT_GREEN}[\"actions\",0,\"id\"]  1234
+  [\"actions\",0,\"status\"]  \"completed\"
+  [\"actions\",0,\"type\"]  \"rebuild\"
+  [\"actions\",1,\"id\"]  98123
+  [\"actions\",1,\"status\"]  \"completed\"
+  [\"actions\",1,\"type\"]  \"build\"${NC}
+
+"
+}
+
+help_action()
+{
+  printf "%b" "${NC}
+This will tell you about a specific action against your account.
+
+  ${LIGHT_GREEN}dio action <ID>${NC}
+
+For example
+
+  ${LIGHT_GREEN}dio action 1234${NC}
+
+Might return
+
+  ${LIGHT_GREEN}[\"actions\",0,\"id\"]  1234
+  [\"actions\",0,\"status\"]  \"completed\"
+  [\"actions\",0,\"type\"]  \"rebuild\"${NC}
+
+"
 }
 
 #--------------------
@@ -395,6 +551,16 @@ get_call()
 {
   curl_call "GET" "$1"
 }
+
+show_call()
+{
+  ANSWER=$(get_call "$1")
+  handle_error $? "$ANSWER" "$2"
+  OUTPUT=$(process "$ANSWER")
+  notify "$OUTPUT\n"
+}
+
+
 
 delete_call()
 {
@@ -683,13 +849,19 @@ printf "%b" "# dio $VERSION
 read_dio_config
 case "$1" in
 "account")
-  get_call "account"
+  show_call "account" "Unable to load your account information."
+  ;;
+"actions")
+  show_call "actions?page=${PAGE-1}" "Unable to load your actions."
+  ;;
+"action")
+  show_call "actions/$2" "Unable to load action $2."
   ;;
 "domains")
-  get_call "domains"
+  show_call "domains" "Unable to load your domains."
   ;;
 "domain")
-  get_call "domains/$2"
+  show_call "domains/$2" "Unable to load information about $2"
   ;;
 "droplets")
   ls_droplets
@@ -742,7 +914,7 @@ case "$1" in
   CURLOPT_FRESH_CONNECT=true curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dio/master/dio
   ;;
 *)
-  usage
+  help_usage
   exit 0
   ;;
 esac

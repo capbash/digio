@@ -88,7 +88,7 @@ Here's what is currently available
 
 ```bash
 =============================
- dio v0.15 A Bash Implementation
+ dio v0.15.3 A Bash Implementation
  Of the Digital Ocean API
 
  More information about the API at
@@ -102,11 +102,15 @@ Usage
 
 Project Setup
 
-  init                 - Initialize the local directory to access a digital ocean account
+  init                        - Initialize the local directory to access a digital ocean account
 
 Account
 
-  account            - To retrieve a list of all of the domains in your account
+  account                     - To retrieve a list of all of the domains in your account
+
+Actions
+
+  actions                     - List all actions on your account
 
 Domains
 
@@ -115,29 +119,38 @@ Domains
   create domain <name> <ip>   - Create new domain <name> attached to <ip>
   delete domain <name>        - Delete the domain <name>
 
-API Actions.
+Domain Records
 
-  create <name>        - Create a new droplet (by <name>)
-  clone <IMAGE> <name> - Create a new droplet based on the provided <IMAGE> (by <name>)
-  power on <ID>        - Start your droplet
-  power off <ID>       - Turn off your droplet
-  snapshot <ID> <name> - Create a snapshot of <ID> called <name>
-  delete               - Delete a new digitalocean droplet (by ID)
-  ssh <ID>             - SSH into your droploet
+  N/A
+
+Droplets
+
+  droplets                   - List all droplets (use this to grab your droplet IDs
+  droplet <id>               - List details about a droplet by <id>
+  create <name>              - Create a new droplet (by <name>)
+  clone <IMAGE> <name>       - Create a new droplet based on the provided <IMAGE> (by <name>)
+
+Droplet Actions
+
+  power on <ID>              - Start your droplet
+  power off <ID>             - Turn off your droplet
+  snapshot <ID> <name>       - Create a snapshot of <ID> called <name>
+  delete                     - Delete a new digitalocean droplet (by ID)
+  ssh <ID>                   - SSH into your droploet
 
 API Queries
 
-  list keys            - List all SSH Keys assoicated with your account
-  list droplets        - List all droplets (use this to grab your droplet IDs
-  list images          - List all private images
+  list keys                  - List all SSH Keys assoicated with your account
+  list droplets              - List all droplets (use this to grab your droplet IDs
+  list images                - List all private images
 
-  info <ID>            - List details about your droplet
+  info <ID>                  - List details about your droplet
 
 Other Actions
 
-  update-self          - Upgrade to latest version
-  version              - Display just version information, like 'dio v0.15'
-  help                 - Show this message
+  update-self                - Upgrade to latest version
+  version                    - Display just version information, like 'dio v0.15.3'
+  help                       - Show this message
 
 
 For reporting issues, please contact aforward@gmail.com, or
