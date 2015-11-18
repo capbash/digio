@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.18.1
+VERSION=v0.18.2
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -484,6 +484,20 @@ Here are all the configurable options
   ${BLUE}PRIVATE_NETWORKING${NC} (defaults to ${BLUE}true${NC})
 
 Any of those options above be defaulted in a local .dio file (type ${LIGHT_GREEN}dio help init${NC} for more details).
+
+"
+}
+
+help_droplet_delete()
+{
+  printf "%b" "${NC}
+You can delete an existing Droplet by
+
+  ${LIGHT_GREEN}dio delete <ID>${NC}
+
+Example,
+
+  ${LIGHT_GREEN}dio delete 123432${NC}
 
 "
 }
