@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.16.1
+VERSION=v0.17.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -154,7 +154,8 @@ do_help()
     help_domains
     ;;
   "domain")
-    help_domain
+    shift
+    help_domain $@
     ;;
   "create")
     info "Create a new droplet..."
@@ -184,10 +185,6 @@ Usage
 
   ${BLUE}dio${NC} ${LIGHT_GREEN}[action]${NC}
 
-Project Setup
-
-  ${LIGHT_GREEN}init${NC}                        ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
-
 Account
 
   ${LIGHT_GREEN}account${NC}                     ${DARK_GREY}- To retrieve a list of all of the domains in your account${NC}
@@ -201,8 +198,8 @@ Domains
 
   ${LIGHT_GREEN}domains${NC}                     ${DARK_GREY}- List all domains${NC}
   ${LIGHT_GREEN}domain <name>${NC}               ${DARK_GREY}- Retrieve info about domain <name>${NC}
-  ${LIGHT_GREEN}create domain <name> <ip>${NC}   ${DARK_GREY}- Create new domain <name> attached to <ip>${NC}
-  ${LIGHT_GREEN}delete domain <name>${NC}        ${DARK_GREY}- Delete the domain <name>${NC}
+  ${LIGHT_GREEN}domain create <name> <ip>${NC}   ${DARK_GREY}- Create new domain <name> attached to <ip>${NC}
+  ${LIGHT_GREEN}domain delete <name>${NC}        ${DARK_GREY}- Delete the domain <name>${NC}
 
 Domain Records
 
@@ -233,6 +230,7 @@ API Queries
 
 Other Actions
 
+  ${LIGHT_GREEN}init${NC}                       ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
   ${LIGHT_GREEN}update-self${NC}                ${DARK_GREY}- Upgrade to latest version${NC}
   ${LIGHT_GREEN}version${NC}                    ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
   ${LIGHT_GREEN}help${NC}                       ${DARK_GREY}- Show this message${NC}
@@ -312,6 +310,21 @@ Example,
 
 help_domain()
 {
+  case "$1" in
+  "create")
+    help_domain_create
+    ;;
+  "delete")
+    help_domain_delete
+    ;;
+  *)
+    help_domain_all
+    ;;
+  esac
+}
+
+help_domain_all()
+{
   printf "%b" "${NC}
 This will tell you about a particular domain
 
@@ -332,8 +345,43 @@ Would return information similar to
   mywebsite.com. 1800 IN NS ns2.digitalocean.com.
   mywebsite.com. 1800 IN NS ns3.digitalocean.com.${NC}
 
+You might also want help on creating and deleting domains,
+for that please call
+
+  ${LIGHT_GREEN}dio help domain create${NC}
+  ${LIGHT_GREEN}dio help domain delete${NC}
+
 "
 }
+
+help_domain_create()
+{
+  printf "%b" "${NC}
+You can create a new domain by
+
+  ${LIGHT_GREEN}dio domain create <name> <ip>${NC}
+
+Example,
+
+  ${LIGHT_GREEN}dio domain create mywebsite.com 127.0.0.0${NC}
+
+"
+}
+
+help_domain_delete()
+{
+  printf "%b" "${NC}
+You can delete an existing domain by
+
+  ${LIGHT_GREEN}dio domain delete <name>${NC}
+
+Example,
+
+  ${LIGHT_GREEN}dio domain delete mywebsite.com${NC}
+
+"
+}
+
 
 help_actions()
 {
@@ -614,12 +662,27 @@ verify_token()
 # API HELPER FUNCTIONS
 #--------------------
 
+do_domain()
+{
+  case "$1" in
+  "create")
+    shift
+    create_domain $@
+    ;;
+  "delete")
+    shift
+    info "About to delete domain $1 ..."
+    delete_call "domains/$1"
+    ;;
+  *)
+    show_call "domains/$1" "Unable to load information about $1"
+    ;;
+  esac
+}
+
 do_create()
 {
   case "$1" in
-  "domain")
-    create_domain $2 $3
-    ;;
   "droplet")
     create_droplet $2
     ;;
@@ -793,10 +856,6 @@ do_power()
 do_delete()
 {
   case "$1" in
-  "domain")
-    info "About to delete domain $2 ..."
-    delete_call "domains/$2"
-    ;;
   "droplet")
     info "About to delete droplet $2 ..."
     delete_call "droplets/$2"
@@ -862,7 +921,8 @@ case "$1" in
   show_call "domains" "Unable to load your domains."
   ;;
 "domain")
-  show_call "domains/$2" "Unable to load information about $2"
+  shift
+  do_domain $@
   ;;
 "droplets")
   ls_droplets
@@ -901,7 +961,8 @@ case "$1" in
   do_info $2
   ;;
 "help")
-  do_help $2
+  shift
+  do_help $@
   ;;
 "version")
   echo -e "${BLUE}dio ${VERSION}${NC}"
