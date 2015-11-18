@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.18.0
+VERSION=v0.18.1
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -132,6 +132,27 @@ do_help()
   "create")
     help_droplet_create
     ;;
+  "kernels")
+    help_droplet_kernels
+    ;;
+  "snapshots")
+    help_droplet_snapshots
+    ;;
+  "backups")
+    help_droplet_backups
+    ;;
+  "actions")
+    help_droplet_actions
+    ;;
+  "delete")
+    help_droplet_delete
+    ;;
+  "neighbors"|"neighbours")
+    help_droplet_neighbors
+    ;;
+  "upgrades")
+    help_droplet_upgrades
+    ;;
   "ls")
     help_droplet_ls
     ;;
@@ -226,8 +247,6 @@ Other Actions
   ${LIGHT_GREEN}update-self${NC}                ${DARK_GREY}- Upgrade to latest version${NC}
   ${LIGHT_GREEN}version${NC}                    ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
   ${LIGHT_GREEN}help${NC}                       ${DARK_GREY}- Show this message${NC}
-
-
 
 ${LIGHT_GREY}
 For reporting issues, please contact aforward@gmail.com, or
@@ -469,6 +488,139 @@ Any of those options above be defaulted in a local .dio file (type ${LIGHT_GREEN
 "
 }
 
+help_droplet_kernels()
+{
+  printf "%b" "${NC}
+This will show you all Kernels available for your Droplet (by <ID>)
+
+  ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> kernels${NC}
+
+You can optionally set which page (defaults to 1) to display, and how many results tokenize
+display per page (defaults to 10).
+
+For example,
+
+  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 kernels${NC}
+
+Might return someting similar to
+
+  ${LIGHT_GREEN}
+  [\"kernels\",0,\"id\"]  231
+  [\"kernels\",0,\"name\"]  \"DO-recovery-static-fsck\"
+  [\"kernels\",0,\"version\"] \"3.8.0-25-generic\"
+  [\"kernels\",1,\"id\"]  61
+  [\"kernels\",1,\"name\"]  \"Ubuntu 10.04 x32 vmlinuz-2.6.32-41-generic-pae\"
+  [\"kernels\",1,\"version\"] \"2.6.32-41-generic-pae\"${NC}
+
+"
+}
+
+help_droplet_snapshots()
+{
+  printf "%b" "${NC}
+This will show you all snapshots available for your Droplet (by <ID>)
+
+  ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> snapshots${NC}
+
+You can optionally set which page (defaults to 1) to display, and how many results tokenize
+display per page (defaults to 10).
+
+For example,
+
+  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 snapshots${NC}
+
+"
+}
+
+help_droplet_backups()
+{
+  printf "%b" "${NC}
+This will show you all backups available for your Droplet (by <ID>)
+
+  ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> backups${NC}
+
+You can optionally set which page (defaults to 1) to display, and how many results tokenize
+display per page (defaults to 10).
+
+For example,
+
+  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 backups${NC}
+
+"
+}
+
+help_droplet_actions()
+{
+  printf "%b" "${NC}
+This will show you all actions available for your Droplet (by <ID>)
+
+  ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> actions${NC}
+
+You can optionally set which page (defaults to 1) to display, and how many results tokenize
+display per page (defaults to 10).
+
+For example,
+
+  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 kernels${NC}
+
+Might return someting similar to
+
+  ${LIGHT_GREEN}
+  [\"actions\",0,\"id\"]  51967593
+  [\"actions\",0,\"status\"]  \"completed\"
+  [\"actions\",0,\"type\"]  \"password_reset\"
+  [\"actions\",1,\"id\"]  48517564
+  [\"actions\",1,\"status\"]  \"completed\"
+  [\"actions\",1,\"type\"]  \"rebuild\"
+  [\"meta\",\"total\"]  3${NC}
+
+"
+}
+
+help_droplet_backups()
+{
+  printf "%b" "${NC}
+This will delete your Droplet (by <ID>)
+
+  ${LIGHT_GREEN}dio delete <ID>${NC}
+
+For example,
+
+  ${LIGHT_GREEN}dio delete 1234122${NC}
+
+"
+}
+
+help_droplet_neighborsxxx()
+{
+  printf "%b" "${NC}
+This will show you all neighbors for your Droplet (by <ID>)
+
+  ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> neighbors${NC}
+
+You can optionally set which page (defaults to 1) to display, and how many results tokenize
+display per page (defaults to 10).
+
+For example,
+
+  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 neighbors${NC}
+
+You may also use the Canadian spelling, for example
+
+  ${LIGHT_GREEN}dio 1234122 neighbours${NC}
+
+"
+}
+
+help_droplet_upgrades()
+{
+  printf "%b" "${NC}
+This will show you all Droplets that are scheduled for an upgrade
+
+  ${LIGHT_GREEN}dio upgrades${NC}
+
+"
+}
 
 #--------------------
 # JSON PARSER
@@ -764,8 +916,14 @@ do_droplet()
     show_call "droplets/$1/neighbors?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load neighbors for Droplet $1"
     ;;
   *)
-    ls_droplet "$1"
-    ;;
+    case "$1" in
+      "upgrades")
+        show_call "droplet_upgrades" "Unable to load Droplets that scheduled for an upgrade"
+        ;;
+      *)
+        ls_droplet "$1"
+        ;;
+    esac
   esac
 }
 
@@ -1026,6 +1184,38 @@ case "$1" in
   info "When done run '${BLUE}dio version${NC}' for the new version."
   CURLOPT_FRESH_CONNECT=true curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dio/master/dio
   ;;
+"test")
+  set -euo pipefail ; IFS=$'\n\t'
+  info "Testing all non invasions calls"
+  info " -- testling help"
+  dio help > /dev/null
+
+  info " -- testling account help"
+  dio help account > /dev/null
+
+  info " -- testling actions help"
+  dio help actions > /dev/null
+  dio help action > /dev/null
+
+  info " -- testling domains help"
+  dio help domains > /dev/null
+  dio help domain > /dev/null
+  dio help domain create > /dev/null
+  dio help domain delete > /dev/null
+
+  info " -- testling droplets help"
+  dio help create > /dev/null
+  dio help ls > /dev/null
+  dio help kernels > /dev/null
+  dio help snapshots > /dev/null
+  dio help backups > /dev/null
+  dio help actions > /dev/null
+  dio help delete > /dev/null
+  dio help neighbors > /dev/null
+  dio help upgrades > /dev/null
+  info "DONE, Testing all non invasions calls"
+  ;;
+
 "")
   help_usage
   exit 0
