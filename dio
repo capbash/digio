@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.18.2
+VERSION=v0.18.3
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -605,7 +605,7 @@ For example,
 "
 }
 
-help_droplet_neighborsxxx()
+help_droplet_neighbors()
 {
   printf "%b" "${NC}
 This will show you all neighbors for your Droplet (by <ID>)
