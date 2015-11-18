@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.17.0
+VERSION=v0.18.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -78,34 +78,6 @@ pp() {
 # INSATLLER
 #--------------------
 
-install_digitalocean()
-{
-  NAME=$1
-
-  mkdir -p $NAME
-  (
-    cd $NAME && \
-    git init && \
-    mkdir -p ./bits && \
-    touch ./bits/.gitkeep && \
-    touch .gitignore && \
-    echo "assets" >> .gitignore && \
-    echo "nodes" >> .gitignore && \
-    git add . && \
-    git commit -m "Initial commit"
-  )
-  (
-    cd $NAME && \
-    [[ `git ls-remote --quiet bootstrap 2>/dev/null` == "" ]] && \
-    git remote add bootstrap https://github.com/digitalocean/digitalocean-bootstrap.git
-  )
-  (
-    cd $NAME && \
-    git subtree add --prefix=bits/bootstrap --squash bootstrap master && \
-    ./bits/bootstrap/bootstrap
-  )
-}
-
 internal_version()
 {
   cat $1 | grep ^VERSION= | awk -F'=' '{print $2}'
@@ -158,7 +130,10 @@ do_help()
     help_domain $@
     ;;
   "create")
-    info "Create a new droplet..."
+    help_droplet_create
+    ;;
+  "ls")
+    help_droplet_ls
     ;;
   "list")
     info "Show 'droplets' (default), and 'keys'."
@@ -183,7 +158,10 @@ ${NC}
 
 Usage
 
-  ${BLUE}dio${NC} ${LIGHT_GREEN}[action]${NC}
+  ${LIGHT_GREEN}<options>* dio <action> <args>*${NC}
+
+Available actions are outlined below, type ${LIGHT_GREEN}dio help <action>${NC}
+for more details an any of the actions above.
 
 Account
 
@@ -207,17 +185,23 @@ Domain Records
 
 Droplets
 
-  ${LIGHT_GREEN}droplets${NC}                   ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
-  ${LIGHT_GREEN}droplet <id>${NC}               ${DARK_GREY}- List details about a droplet by <id>${NC}
-  ${LIGHT_GREEN}create <name>${NC}              ${DARK_GREY}- Create a new droplet (by <name>)${NC}
-  ${LIGHT_GREEN}clone <IMAGE> <name>${NC}       ${DARK_GREY}- Create a new droplet based on the provided <IMAGE> (by <name>)${NC}
+  ${LIGHT_GREEN}<opts> create <name>${NC}       ${DARK_GREY}- Create a new Droplet${NC}
+  ${LIGHT_GREEN}<ID>${NC}                       ${DARK_GREY}- Retrieve an existing Droplet by <ID>${NC}
+  ${LIGHT_GREEN}ls${NC}                         ${DARK_GREY}- List all Droplets (use this to locate your Droplet <ID>)${NC}
+  ${LIGHT_GREEN}<ID> kernels${NC}               ${DARK_GREY}- List all available Kernels for a Droplet${NC}
+  ${LIGHT_GREEN}<ID> snapshots${NC}             ${DARK_GREY}- List snapshots for a Droplet${NC}
+  ${LIGHT_GREEN}<ID> backups${NC}               ${DARK_GREY}- List backups for a Droplet${NC}
+  ${LIGHT_GREEN}<ID> actions${NC}               ${DARK_GREY}- List actions for a Droplet${NC}
+  ${LIGHT_GREEN}delete <ID>${NC}                ${DARK_GREY}- Delete a Droplet (by <ID>)${NC}
+  ${LIGHT_GREEN}<ID> neighbors${NC}             ${DARK_GREY}- List Neighbors for a Droplet${NC}
+  ${LIGHT_GREEN}neighbors${NC}                  ${DARK_GREY}- List all Droplet Neighbors${NC}
+  ${LIGHT_GREEN}upgrades${NC}                   ${DARK_GREY}- List Droplet upgrades${NC}
 
 Droplet Actions
 
   ${LIGHT_GREEN}power on <ID>${NC}              ${DARK_GREY}- Start your droplet${NC}
   ${LIGHT_GREEN}power off <ID>${NC}             ${DARK_GREY}- Turn off your droplet${NC}
   ${LIGHT_GREEN}snapshot <ID> <name>${NC}       ${DARK_GREY}- Create a snapshot of <ID> called <name>${NC}
-  ${LIGHT_GREEN}delete${NC}                     ${DARK_GREY}- Delete a new digitalocean droplet (by ID)${NC}
   ${LIGHT_GREEN}ssh <ID>${NC}                   ${DARK_GREY}- SSH into your droploet${NC}
 
 API Queries
@@ -228,12 +212,22 @@ API Queries
 
   ${LIGHT_GREEN}info <ID>${NC}                  ${DARK_GREY}- List details about your droplet${NC}
 
+Regions
+
+  ${LIGHT_GREEN}regions${NC}                    ${DARK_GREY}- List all regions (e.g. tor1) and their features${NC}
+
+Sizes
+
+  ${LIGHT_GREEN}sizes${NC}                      ${DARK_GREY}- List all droplet sizes (e.g. 512mb) and their features${NC}
+
 Other Actions
 
   ${LIGHT_GREEN}init${NC}                       ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
   ${LIGHT_GREEN}update-self${NC}                ${DARK_GREY}- Upgrade to latest version${NC}
   ${LIGHT_GREEN}version${NC}                    ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
   ${LIGHT_GREEN}help${NC}                       ${DARK_GREY}- Show this message${NC}
+
+
 
 ${LIGHT_GREY}
 For reporting issues, please contact aforward@gmail.com, or
@@ -382,7 +376,6 @@ Example,
 "
 }
 
-
 help_actions()
 {
   printf "%b" "${NC}
@@ -423,6 +416,59 @@ Might return
 
 "
 }
+
+help_droplet_ls()
+{
+  printf "%b" "${NC}
+This will show you a summary of all your droplets
+
+  ${LIGHT_GREEN}dio ls${NC}
+
+For example,
+
+  ${LIGHT_GREEN}
+  1234122
+  \"mydev\"
+  \"active\"
+  1234321
+  \"myprod\"
+  \"active\"${NC}
+
+"
+}
+
+help_droplet_create()
+{
+  printf "%b" "${NC}
+Use this command to create a new droplet
+
+  ${LIGHT_GREEN}<options> dio create <name>${NC}
+
+For example,
+
+  ${LIGHT_GREEN}SIZE=1g dio create mystage${NC}
+
+Or, if you wanted to clone a snapshot
+
+  ${LIGHT_GREEN}IMAGE=mysnap dio create snap02${NC}
+
+Here are all the configurable options
+
+  ${BLUE}TOKEN${NC} (should set your default in .dio file (which you can create using ${LIGHT_GREEN}dio init${NC})
+  ${BLUE}REGION${NC} (defaults to ${BLUE}tor1${NC} (Go Canda!), see all ${LIGHT_GREEN}dio regions${NC})
+  ${BLUE}SIZE${NC} (defaults to ${BLUE}512mb${NC}, see all ${LIGHT_GREEN}dio sizes${NC}, or ${LIGHT_GREEN}dio snapshots${NC})
+  ${BLUE}IMAGE${NC} (defaults to ${BLUE}ubuntu-14-04-x64${NC}, see all ${LIGHT_GREEN}dio images${NC})
+  ${BLUE}SSH_KEYS${NC} (set your default in .dio file, see all ${LIGHT_GREEN}dio ssh-keys${NC})
+  ${BLUE}BACKUPS${NC} (defaults to ${BLUE}false${NC})
+  ${BLUE}IPV6${NC} (defaults to ${BLUE}true${NC})
+  ${BLUE}USER_DATA${NC} (defaults to ${BLUE}null${NC})
+  ${BLUE}PRIVATE_NETWORKING${NC} (defaults to ${BLUE}true${NC})
+
+Any of those options above be defaulted in a local .dio file (type ${LIGHT_GREEN}dio help init${NC} for more details).
+
+"
+}
+
 
 #--------------------
 # JSON PARSER
@@ -680,19 +726,50 @@ do_domain()
   esac
 }
 
-do_create()
+create_domain()
 {
-  case "$1" in
-  "droplet")
-    create_droplet $2
+  NAME=$1
+  IP=$2
+
+  TOKEN=${TOKEN}
+  LOGFILE=${LOGFILE-/tmp/dio.log}
+
+  verify_token $TOKEN
+  info "Creating a domain $NAME ($IP)"
+  ANSWER=$(curl -X POST $API_URL/domains \
+           -d "{\"name\":\"$NAME\", \"ip_address\":\"$IP\"}" \
+           -H "Authorization: Bearer $TOKEN" \
+           -H "Content-Type: application/json" 2> $LOGFILE)
+  handle_error $? "$ANSWER" "Unable to create domain $NAME ($IP)"
+  OUTPUT=$(process "$ANSWER")
+  info "$OUTPUT"
+}
+
+do_droplet()
+{
+  case "$2" in
+  "kernels")
+    show_call "droplets/$1/kernels?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load kernels for Droplet $1"
+    ;;
+  "snapshots")
+    show_call "droplets/$1/snapshots?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load snapshots for Droplet $1"
+    ;;
+  "backups")
+    show_call "droplets/$1/backups?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load backups for Droplet $1"
+    ;;
+  "actions")
+    show_call "droplets/$1/actions?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load actions for Droplet $1"
+    ;;
+  "neighbors"|"neighbours")
+    show_call "droplets/$1/neighbors?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load neighbors for Droplet $1"
     ;;
   *)
-    do_create "droplet" $1
+    ls_droplet "$1"
     ;;
   esac
 }
 
-create_droplet()
+droplet_create()
 {
   TOKEN=${TOKEN}
   NAME=$1
@@ -736,23 +813,10 @@ create_droplet()
   info "$OUTPUT"
 }
 
-create_domain()
+droplet_delete()
 {
-  NAME=$1
-  IP=$2
-
-  TOKEN=${TOKEN}
-  LOGFILE=${LOGFILE-/tmp/dio.log}
-
-  verify_token $TOKEN
-  info "Creating a domain $NAME ($IP)"
-  ANSWER=$(curl -X POST $API_URL/domains \
-           -d "{\"name\":\"$NAME\", \"ip_address\":\"$IP\"}" \
-           -H "Authorization: Bearer $TOKEN" \
-           -H "Content-Type: application/json" 2> $LOGFILE)
-  handle_error $? "$ANSWER" "Unable to create domain $NAME ($IP)"
-  OUTPUT=$(process "$ANSWER")
-  info "$OUTPUT"
+  info "About to delete droplet $1 ..."
+  delete_call "droplets/$1"
 }
 
 do_snapshot()
@@ -853,19 +917,6 @@ do_power()
   notify "$OUTPUT\n"
 }
 
-do_delete()
-{
-  case "$1" in
-  "droplet")
-    info "About to delete droplet $2 ..."
-    delete_call "droplets/$2"
-    ;;
-  *)
-    do_delete "droplet" $1
-    ;;
-  esac
-}
-
 do_ssh()
 {
   ID=$1
@@ -920,25 +971,25 @@ case "$1" in
 "domains")
   show_call "domains" "Unable to load your domains."
   ;;
+"regions")
+  show_call "regions" "Unable to load DigitalOcean regions."
+  ;;
+"sizes")
+  show_call "sizes" "Unable to load DigitalOcean sizes."
+  ;;
 "domain")
   shift
   do_domain $@
   ;;
-"droplets")
+"ls")
   ls_droplets
-  ;;
-"droplet")
-  ls_droplet "$2"
   ;;
 "init")
   do_init
   ;;
 "create")
   shift
-  do_create $@
-  ;;
-"clone")
-  IMAGE=$2 create_droplet $3
+  droplet_create $@
   ;;
 "snapshot")
   do_snapshot $2 $3
@@ -948,7 +999,7 @@ case "$1" in
   ;;
 "delete")
   shift
-  do_delete $@
+  droplet_delete $@
   ;;
 "ssh")
   shift
@@ -975,8 +1026,11 @@ case "$1" in
   info "When done run '${BLUE}dio version${NC}' for the new version."
   CURLOPT_FRESH_CONNECT=true curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dio/master/dio
   ;;
-*)
+"")
   help_usage
   exit 0
+  ;;
+*)
+  do_droplet $@
   ;;
 esac
