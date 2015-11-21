@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.18.6
+VERSION=v0.19.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -153,6 +153,22 @@ do_help()
     ;;
 
 
+  # -----------------
+  # Domain Records
+  # + List All Domain Records
+  # + Create a new Domain Record
+  # + Retrieve an existing Domain Record
+  # + Update a Domain Record
+  # + Delete a Domain Record
+  # https://developers.digitalocean.com/documentation/v2/#domains
+  # -----------------
+  "records")
+    help_records
+    ;;
+  "record")
+    shift
+    help_record $@
+    ;;
 
   "create")
     help_droplet_create
@@ -561,6 +577,230 @@ Example call,
 
 "
 }
+
+help_records()
+{
+  printf "%b" "${NC}
+Domain record resources are used to set or retrieve information about the
+individual DNS records configured for a domain. This allows you to build
+and manage DNS zone files by adding and modifying individual records for
+a domain.
+
+There is also an additional field called id that is auto-assigned for each
+record and used as a unique identifier for requests. For record types that
+do not utilize all fields, a value of null will be set for that record.
+
+To get a listing of all records configured for a domain
+
+  ${LIGHT_GREEN}dio records <domain>${NC}
+
+Example call,
+
+  ${LIGHT_GREEN}dio records example.com${NC}
+
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"domain_records\": [
+      {
+        \"id\": 3352892,
+        \"type\": \"NS\",
+        \"name\": \"@\",
+        \"data\": \"ns1.digitalocean.com\",
+        \"priority\": null,
+        \"port\": null,
+        \"weight\": null
+      },
+      {
+        \"id\": 3352893,
+        \"type\": \"NS\",
+        \"name\": \"@\",
+        \"data\": \"ns2.digitalocean.com\",
+        \"priority\": null,
+        \"port\": null,
+        \"weight\": null
+      },
+      {
+        \"id\": 3352894,
+        \"type\": \"NS\",
+        \"name\": \"@\",
+        \"data\": \"ns3.digitalocean.com\",
+        \"priority\": null,
+        \"port\": null,
+        \"weight\": null
+      },
+      {
+        \"id\": 3352895,
+        \"type\": \"A\",
+        \"name\": \"@\",
+        \"data\": \"1.2.3.4\",
+        \"priority\": null,
+        \"port\": null,
+        \"weight\": null
+      }
+    ],
+    \"links\": {
+    },
+    \"meta\": {
+      \"total\": 4
+    }
+  }${NC}
+
+"
+}
+
+help_record()
+{
+  case "$1" in
+  "create")
+    help_record_create
+    ;;
+  "update")
+    help_record_update
+    ;;
+  "delete")
+    help_record_delete
+    ;;
+  *)
+    help_record_all
+    ;;
+  esac
+}
+
+help_record_create()
+{
+  printf "%b" "${NC}
+To create a new record to a domain
+
+  ${LIGHT_GREEN}PRIORITY=<x> PORT=<y> WEIGHT=<z> dio record create <domain> <type> <name> <data>${NC}
+
+Example call,
+
+  ${LIGHT_GREEN}dio record example.com A www 162.10.66.0${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"domain_record\": {
+      \"id\": 3352896,
+      \"type\": \"A\",
+      \"name\": \"www\",
+      \"data\": \"162.10.66.0\",
+      \"priority\": null,
+      \"port\": null,
+      \"weight\": null
+    }
+  }${NC}
+
+"
+}
+
+help_record_all()
+{
+  printf "%b" "${NC}
+To retrieve a specific domain record
+
+  ${LIGHT_GREEN}dio record <domain> <ID>${NC}
+
+Example call,
+
+  ${LIGHT_GREEN}dio record example.com 3352896${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"domain_record\": {
+      \"id\": 3352896,
+      \"type\": \"A\",
+      \"name\": \"www\",
+      \"data\": \"162.10.66.0\",
+      \"priority\": null,
+      \"port\": null,
+      \"weight\": null
+    }
+  }${NC}
+
+To create a new record,
+
+  ${LIGHT_GREEN}PRIORITY=<x> PORT=<y> WEIGHT=<z> dio record create <domain> <type> <name> <data>${NC}
+
+To update a existing record,
+
+  ${LIGHT_GREEN}dio record update <domain> <ID> <field> <val>${NC}
+
+To delete an existing record,
+
+  ${LIGHT_GREEN}dio record delete <domain> <ID>${NC}
+
+For help on those calls,
+
+  ${LIGHT_GREEN}dio help record create${NC}
+  ${LIGHT_GREEN}dio help record update${NC}
+  ${LIGHT_GREEN}dio help record delete${NC}
+
+"
+}
+
+help_record_update()
+{
+  printf "%b" "${NC}
+To update an existing record
+
+  ${LIGHT_GREEN}dio record update <domain> <ID> <field> <val>${NC}
+
+Available fields include
+
+|========================================================================================================================|
+| Name     | Type     | Description                                                   | Required                         |
+|==========+==========+===============================================================+==================================|
+| type     | string   | The record type (A, MX, CNAME, etc).                          | All Records                      |
+| name     | string   | The host name, alias, or service being defined by the record. | A, AAAA, CNAME, TXT, SRV         |
+| data     | string   | Variable data depending on record type.                       | A, AAAA, CNAME, MX, TXT, SRV, NS |
+| priority | nullable | number The priority of the host                               | MX, SRV                          |
+| port     | nullable | number The port that the service is accessible                | SRV                              |
+| weight   | nullable | number The weight of records with the same priority           | SRV                              |
+|========================================================================================================================|
+
+Example call,
+
+  ${LIGHT_GREEN}dio record update example.com 3352896 name blog${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"domain_record\": {
+      \"id\": 3352896,
+      \"type\": \"A\",
+      \"name\": \"blog\",
+      \"data\": \"162.10.66.0\",
+      \"priority\": null,
+      \"port\": null,
+      \"weight\": null
+    }
+  }${NC}
+
+"
+}
+
+help_record_delete()
+{
+  printf "%b" "${NC}
+To delete a record for a domain
+
+  ${LIGHT_GREEN}dio record delete <domain> <ID>${NC}
+
+The record will be removed from your account.
+
+Example call,
+
+  ${LIGHT_GREEN}dio record delete example.com 3352896${NC}
+
+"
+}
+
+
+
 
 
 help_droplet_ls()
@@ -1006,7 +1246,7 @@ do_domain()
   case "$1" in
   "create")
     shift
-    create_domain $@
+    domain_create $@
     ;;
   "delete")
     shift
@@ -1019,7 +1259,7 @@ do_domain()
   esac
 }
 
-create_domain()
+domain_create()
 {
   NAME=$1
   IP=$2
@@ -1034,6 +1274,79 @@ create_domain()
            -H "Authorization: Bearer $TOKEN" \
            -H "Content-Type: application/json" 2> $LOGFILE)
   handle_error $? "$ANSWER" "Unable to create domain $NAME ($IP)"
+  OUTPUT=$(process "$ANSWER")
+  info "$OUTPUT"
+}
+
+do_record()
+{
+  case "$1" in
+  "create")
+    shift
+    record_create $@
+    ;;
+  "update")
+    shift
+    record_update $@
+    ;;
+  "delete")
+    shift
+    info "About to delete record $1 $2 ..."
+    delete_call "domains/$1/records/$2"
+    ;;
+  *)
+    show_call "domains/$1/records/$2" "Unable to load information about $1 $2"
+    ;;
+  esac
+}
+
+record_create()
+{
+  DOMAIN=$1
+  TYPE=$2
+  NAME=$3
+  DATA=$4
+  PRIORITY=${PRIORITY-null}
+  PORT=${PORT-null}
+  WEIGHT=${WEIGHT-null}
+
+  TOKEN=${TOKEN}
+  LOGFILE=${LOGFILE-/tmp/dio.log}
+
+  verify_token $TOKEN
+  info "Creating a record $TYPE $NAME $DATA ($DOMAIN)"
+  debug "  -- type: $TYPE"
+  debug "  -- name: $NAME"
+  debug "  -- data: $DATA"
+  debug "  -- priority: $PRIORITY"
+  debug "  -- port: $PORT"
+  debug "  -- weight: $WEIGHT"
+  ANSWER=$(curl -X POST $API_URL/domains/$DOMAIN/records \
+           -d "{\"type\":\"$TYPE\", \"name\":\"$NAME\", \"data\":\"$DATA\", \"priority\":\"$PRIORITY\", \"port\":\"$PORT\", \"weight\":\"$WEIGHT\"}" \
+           -H "Authorization: Bearer $TOKEN" \
+           -H "Content-Type: application/json" 2> $LOGFILE)
+  handle_error $? "$ANSWER" "Unable to create record $TYPE $NAME $DATA ($DOMAIN)"
+  OUTPUT=$(process "$ANSWER")
+  info "$OUTPUT"
+}
+
+record_update()
+{
+  DOMAIN=$1
+  ID=$2
+  FIELD=$3
+  VALUE=$4
+
+  TOKEN=${TOKEN}
+  LOGFILE=${LOGFILE-/tmp/dio.log}
+
+  verify_token $TOKEN
+  info "Updating a record $ID $FIELD=$VALUE ($DOMAIN)"
+  ANSWER=$(curl -X PUT $API_URL/domains/$DOMAIN/records/$ID \
+           -d "{\"$FIELD\":\"$VALUE\"}" \
+           -H "Authorization: Bearer $TOKEN" \
+           -H "Content-Type: application/json" 2> $LOGFILE)
+  handle_error $? "$ANSWER" "Unable to update record $ID $FIELD=$VALUE ($DOMAIN)"
   OUTPUT=$(process "$ANSWER")
   info "$OUTPUT"
 }
@@ -1273,6 +1586,14 @@ do_test()
   dio help domain create 2>/dev/null 1>&2
   dio help domain delete 2>/dev/null 1>&2
 
+  info " :::: Domain Records :::"
+  dio records 2>/dev/null 1>&2
+  dio help records 2>/dev/null 1>&2
+  dio help record 2>/dev/null 1>&2
+  dio help record create 2>/dev/null 1>&2
+  dio help record update 2>/dev/null 1>&2
+  dio help record delete 2>/dev/null 1>&2
+
   info " :::: Droplets :::"
   dio ls 2>/dev/null 1>&2
   dio help ls 2>/dev/null 1>&2
@@ -1341,6 +1662,24 @@ cli()
     shift
     do_domain $@
     ;;
+
+  # -----------------
+  # Domain Records
+  # + List All Domain Records
+  # + Create a new Domain Record
+  # + Retrieve an existing Domain Record
+  # + Update a Domain Record
+  # + Delete a Domain Record
+  # https://developers.digitalocean.com/documentation/v2/#domains
+  # -----------------
+  "records")
+    show_call "domains/$2/records" "Unable to load domain records for $2."
+    ;;
+  "record")
+    shift
+    do_record $@
+    ;;
+
 
   "regions")
     show_call "regions" "Unable to load DigitalOcean regions."
