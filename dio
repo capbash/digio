@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.19.0
+VERSION=v0.19.1
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -230,67 +230,71 @@ for more details an any of the actions above.
 
 Account
 
-  ${LIGHT_GREEN}account${NC}                     ${DARK_GREY}- To retrieve a list of all of the domains in your account${NC}
+  ${LIGHT_GREEN}account${NC}                                       ${DARK_GREY}- To retrieve a list of all of the domains in your account${NC}
 
 Actions
 
-  ${LIGHT_GREEN}actions${NC}                     ${DARK_GREY}- List all actions on your account${NC}
-  ${LIGHT_GREEN}action <ID>${NC}                 ${DARK_GREY}- List details of a specific action on your account${NC}
+  ${LIGHT_GREEN}actions${NC}                                       ${DARK_GREY}- List all actions on your account${NC}
+  ${LIGHT_GREEN}action <ID>${NC}                                   ${DARK_GREY}- List details of a specific action on your account${NC}
 
 Domains
 
-  ${LIGHT_GREEN}domains${NC}                     ${DARK_GREY}- List all domains${NC}
-  ${LIGHT_GREEN}domain <name>${NC}               ${DARK_GREY}- Retrieve info about domain <name>${NC}
-  ${LIGHT_GREEN}domain create <name> <ip>${NC}   ${DARK_GREY}- Create new domain <name> attached to <ip>${NC}
-  ${LIGHT_GREEN}domain delete <name>${NC}        ${DARK_GREY}- Delete the domain <name>${NC}
+  ${LIGHT_GREEN}domains${NC}                                       ${DARK_GREY}- List all domains${NC}
+  ${LIGHT_GREEN}domain <name>${NC}                                 ${DARK_GREY}- Retrieve info about domain <name>${NC}
+  ${LIGHT_GREEN}domain create <name> <ip>${NC}                     ${DARK_GREY}- Create new domain <name> attached to <ip>${NC}
+  ${LIGHT_GREEN}domain delete <name>${NC}                          ${DARK_GREY}- Delete the domain <name>${NC}
 
 Domain Records
 
-  N/A
+  ${LIGHT_GREEN}records <domain>${NC}                              ${DARK_GREY}- List all domain records${NC}
+  ${LIGHT_GREEN}record <domain> <ID>${NC}                          ${DARK_GREY}- Retrieve info about <domain> record <ID>${NC}
+  ${LIGHT_GREEN}record create <domain> <type> <name> <data>${NC}   ${DARK_GREY}- Create new <domain> record${NC}
+  ${LIGHT_GREEN}record update <domain> <ID> <field> <value>${NC}   ${DARK_GREY}- Upadte an existing <domain> record${NC}
+  ${LIGHT_GREEN}record delete <domain> <ID>${NC}                   ${DARK_GREY}- Delete the <domain> record <ID>${NC}
 
 Droplets
 
-  ${LIGHT_GREEN}<opts> create <name>${NC}       ${DARK_GREY}- Create a new Droplet${NC}
-  ${LIGHT_GREEN}<ID>${NC}                       ${DARK_GREY}- Retrieve an existing Droplet by <ID>${NC}
-  ${LIGHT_GREEN}ls${NC}                         ${DARK_GREY}- List all Droplets (use this to locate your Droplet <ID>)${NC}
-  ${LIGHT_GREEN}<ID> kernels${NC}               ${DARK_GREY}- List all available Kernels for a Droplet${NC}
-  ${LIGHT_GREEN}<ID> snapshots${NC}             ${DARK_GREY}- List snapshots for a Droplet${NC}
-  ${LIGHT_GREEN}<ID> backups${NC}               ${DARK_GREY}- List backups for a Droplet${NC}
-  ${LIGHT_GREEN}<ID> actions${NC}               ${DARK_GREY}- List actions for a Droplet${NC}
-  ${LIGHT_GREEN}delete <ID>${NC}                ${DARK_GREY}- Delete a Droplet (by <ID>)${NC}
-  ${LIGHT_GREEN}<ID> neighbors${NC}             ${DARK_GREY}- List Neighbors for a Droplet${NC}
-  ${LIGHT_GREEN}neighbors${NC}                  ${DARK_GREY}- List all Droplet Neighbors${NC}
-  ${LIGHT_GREEN}upgrades${NC}                   ${DARK_GREY}- List Droplet upgrades${NC}
+  ${LIGHT_GREEN}<opts> create <name>${NC}                         ${DARK_GREY}- Create a new Droplet${NC}
+  ${LIGHT_GREEN}<ID>${NC}                                         ${DARK_GREY}- Retrieve an existing Droplet by <ID>${NC}
+  ${LIGHT_GREEN}ls${NC}                                           ${DARK_GREY}- List all Droplets (use this to locate your Droplet <ID>)${NC}
+  ${LIGHT_GREEN}<ID> kernels${NC}                                 ${DARK_GREY}- List all available Kernels for a Droplet${NC}
+  ${LIGHT_GREEN}<ID> snapshots${NC}                               ${DARK_GREY}- List snapshots for a Droplet${NC}
+  ${LIGHT_GREEN}<ID> backups${NC}                                 ${DARK_GREY}- List backups for a Droplet${NC}
+  ${LIGHT_GREEN}<ID> actions${NC}                                 ${DARK_GREY}- List actions for a Droplet${NC}
+  ${LIGHT_GREEN}delete <ID>${NC}                                  ${DARK_GREY}- Delete a Droplet (by <ID>)${NC}
+  ${LIGHT_GREEN}<ID> neighbors${NC}                               ${DARK_GREY}- List Neighbors for a Droplet${NC}
+  ${LIGHT_GREEN}neighbors${NC}                                    ${DARK_GREY}- List all Droplet Neighbors${NC}
+  ${LIGHT_GREEN}upgrades${NC}                                     ${DARK_GREY}- List Droplet upgrades${NC}
 
 Droplet Actions
 
-  ${LIGHT_GREEN}power on <ID>${NC}              ${DARK_GREY}- Start your droplet${NC}
-  ${LIGHT_GREEN}power off <ID>${NC}             ${DARK_GREY}- Turn off your droplet${NC}
-  ${LIGHT_GREEN}snapshot <ID> <name>${NC}       ${DARK_GREY}- Create a snapshot of <ID> called <name>${NC}
-  ${LIGHT_GREEN}ssh <ID>${NC}                   ${DARK_GREY}- SSH into your droploet${NC}
+  ${LIGHT_GREEN}power on <ID>${NC}                                ${DARK_GREY}- Start your droplet${NC}
+  ${LIGHT_GREEN}power off <ID>${NC}                               ${DARK_GREY}- Turn off your droplet${NC}
+  ${LIGHT_GREEN}snapshot <ID> <name>${NC}                         ${DARK_GREY}- Create a snapshot of <ID> called <name>${NC}
+  ${LIGHT_GREEN}ssh <ID>${NC}                                     ${DARK_GREY}- SSH into your droploet${NC}
 
 API Queries
 
-  ${LIGHT_GREEN}list keys${NC}                  ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
-  ${LIGHT_GREEN}list droplets${NC}              ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
-  ${LIGHT_GREEN}list images${NC}                ${DARK_GREY}- List all private images${NC}
+  ${LIGHT_GREEN}list keys${NC}                                    ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
+  ${LIGHT_GREEN}list droplets${NC}                                ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
+  ${LIGHT_GREEN}list images${NC}                                  ${DARK_GREY}- List all private images${NC}
 
-  ${LIGHT_GREEN}info <ID>${NC}                  ${DARK_GREY}- List details about your droplet${NC}
+  ${LIGHT_GREEN}info <ID>${NC}                                    ${DARK_GREY}- List details about your droplet${NC}
 
 Regions
 
-  ${LIGHT_GREEN}regions${NC}                    ${DARK_GREY}- List all regions (e.g. tor1) and their features${NC}
+  ${LIGHT_GREEN}regions${NC}                                      ${DARK_GREY}- List all regions (e.g. tor1) and their features${NC}
 
 Sizes
 
-  ${LIGHT_GREEN}sizes${NC}                      ${DARK_GREY}- List all droplet sizes (e.g. 512mb) and their features${NC}
+  ${LIGHT_GREEN}sizes${NC}                                        ${DARK_GREY}- List all droplet sizes (e.g. 512mb) and their features${NC}
 
 Other Actions
 
-  ${LIGHT_GREEN}init${NC}                       ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
-  ${LIGHT_GREEN}update-self${NC}                ${DARK_GREY}- Upgrade to latest version${NC}
-  ${LIGHT_GREEN}version${NC}                    ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
-  ${LIGHT_GREEN}help${NC}                       ${DARK_GREY}- Show this message${NC}
+  ${LIGHT_GREEN}init${NC}                                         ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
+  ${LIGHT_GREEN}update-self${NC}                                  ${DARK_GREY}- Upgrade to latest version${NC}
+  ${LIGHT_GREEN}version${NC}                                      ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
+  ${LIGHT_GREEN}help${NC}                                         ${DARK_GREY}- Show this message${NC}
 
 ${LIGHT_GREY}
 For reporting issues, please contact aforward@gmail.com, or
