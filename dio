@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.18.5
+VERSION=v0.18.6
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -1252,6 +1252,50 @@ printf "%b" "# dio $VERSION
 
 }
 
+do_test()
+{
+  set -euo pipefail ; IFS=$'\n\t'
+  info "Testing all non invasions calls"
+
+  info " :::: Account :::"
+  dio account 2>/dev/null 1>&2
+  dio help account 2>/dev/null 1>&2
+
+  info " :::: Actions :::"
+  dio actions 2>/dev/null 1>&2
+  dio help actions 2>/dev/null 1>&2
+  dio help action 2>/dev/null 1>&2
+
+  info " :::: Domains :::"
+  dio domains 2>/dev/null 1>&2
+  dio help domains 2>/dev/null 1>&2
+  dio help domain 2>/dev/null 1>&2
+  dio help domain create 2>/dev/null 1>&2
+  dio help domain delete 2>/dev/null 1>&2
+
+  info " :::: Droplets :::"
+  dio ls 2>/dev/null 1>&2
+  dio help ls 2>/dev/null 1>&2
+  dio kernels 2>/dev/null 1>&2
+  dio help kernels 2>/dev/null 1>&2
+  dio snapshots 2>/dev/null 1>&2
+  dio help snapshots 2>/dev/null 1>&2
+  dio backups 2>/dev/null 1>&2
+  dio help backups 2>/dev/null 1>&2
+  dio neighbors 2>/dev/null 1>&2
+  dio neighbours 2>/dev/null 1>&2
+  dio help neighbors 2>/dev/null 1>&2
+  dio help neighbours 2>/dev/null 1>&2
+  dio upgrades 2>/dev/null 1>&2
+  dio help upgrades 2>/dev/null 1>&2
+  dio help create 2>/dev/null 1>&2
+  dio help delete 2>/dev/null 1>&2
+
+  info " :::: Help :::"
+  dio help 2>/dev/null 1>&2
+  info "DONE, Testing all non invasions calls"
+}
+
 #--------------------
 # COMMAND LINE PARSER
 #--------------------
@@ -1350,35 +1394,8 @@ cli()
     CURLOPT_FRESH_CONNECT=true curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dio/master/dio
     ;;
   "test")
-    set -euo pipefail ; IFS=$'\n\t'
-    info "Testing all non invasions calls"
-    info " -- testling help"
-    dio help > /dev/null
-
-    info " -- testling account help"
-    dio help account > /dev/null
-
-    info " -- testling actions help"
-    dio help actions > /dev/null
-    dio help action > /dev/null
-
-    info " -- testling domains help"
-    dio help domains > /dev/null
-    dio help domain > /dev/null
-    dio help domain create > /dev/null
-    dio help domain delete > /dev/null
-
-    info " -- testling droplets help"
-    dio help create > /dev/null
-    dio help ls > /dev/null
-    dio help kernels > /dev/null
-    dio help snapshots > /dev/null
-    dio help backups > /dev/null
-    dio help actions > /dev/null
-    dio help delete > /dev/null
-    dio help neighbors > /dev/null
-    dio help upgrades > /dev/null
-    info "DONE, Testing all non invasions calls"
+    shift
+    do_test $@
     ;;
 
   "")
