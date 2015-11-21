@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.19.1
+VERSION=v0.19.2
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -170,8 +170,30 @@ do_help()
     help_record $@
     ;;
 
+
+  # -----------------
+  # Droplets
+  # + Create a new Droplet
+  # + Retrieve an existing Droplet by Id
+  # + List All Droplets
+  # + List available Kernels for a Droplet
+  # + List snapshots for a Droplet
+  # + List backups for a Droplet
+  # + List actions for a Droplet
+  # + Delete a Droplet
+  # + List Neighbors for a Droplet
+  # + List all Droplet Neighbors
+  # + List Droplet Upgrades
+  # https://developers.digitalocean.com/documentation/v2/#droplets
+  # -----------------
   "create")
     help_droplet_create
+    ;;
+  "ls"|"droplets")
+    help_droplet_ls
+    ;;
+  "droplet")
+    help_droplet_all
     ;;
   "kernels")
     help_droplet_kernels
@@ -194,12 +216,9 @@ do_help()
   "upgrades")
     help_droplet_upgrades
     ;;
-  "ls")
-    help_droplet_ls
-    ;;
-  "list")
-    info "Show 'droplets' (default), and 'keys'."
-    ;;
+
+
+
   "init")
     help_init
     ;;
@@ -256,7 +275,8 @@ Droplets
 
   ${LIGHT_GREEN}<opts> create <name>${NC}                         ${DARK_GREY}- Create a new Droplet${NC}
   ${LIGHT_GREEN}<ID>${NC}                                         ${DARK_GREY}- Retrieve an existing Droplet by <ID>${NC}
-  ${LIGHT_GREEN}ls${NC}                                           ${DARK_GREY}- List all Droplets (use this to locate your Droplet <ID>)${NC}
+  ${LIGHT_GREEN}droplets${NC}                                     ${DARK_GREY}- List all Droplets (use this to locate your Droplet <ID>)${NC}
+  ${LIGHT_GREEN}ls${NC}                                           ${DARK_GREY}- Alias to 'dio droplets'${NC}
   ${LIGHT_GREEN}<ID> kernels${NC}                                 ${DARK_GREY}- List all available Kernels for a Droplet${NC}
   ${LIGHT_GREEN}<ID> snapshots${NC}                               ${DARK_GREY}- List snapshots for a Droplet${NC}
   ${LIGHT_GREEN}<ID> backups${NC}                                 ${DARK_GREY}- List backups for a Droplet${NC}
@@ -803,26 +823,223 @@ Example call,
 "
 }
 
+help_droplet_all()
+{
+  printf "%b" "${NC}
+To show an individual droplet
 
+  ${LIGHT_GREEN}dio <ID>${NC}
 
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"droplet\": {
+      \"id\": 3164494,
+      \"name\": \"example.com\",
+      \"memory\": 512,
+      \"vcpus\": 1,
+      \"disk\": 20,
+      \"locked\": false,
+      \"status\": \"active\",
+      \"kernel\": {
+        \"id\": 2233,
+        \"name\": \"Ubuntu 14.04 x64 vmlinuz-3.13.0-37-generic\",
+        \"version\": \"3.13.0-37-generic\"
+      },
+      \"created_at\": \"2014-11-14T16:36:31Z\",
+      \"features\": [
+        \"ipv6\",
+        \"virtio\"
+      ],
+      \"backup_ids\": [
 
+      ],
+      \"snapshot_ids\": [
+        7938206
+      ],
+      \"image\": {
+        \"id\": 6918990,
+        \"name\": \"14.04 x64\",
+        \"distribution\": \"Ubuntu\",
+        \"slug\": \"ubuntu-14-04-x64\",
+        \"public\": true,
+        \"regions\": [
+          \"nyc1\",
+          \"ams1\",
+          \"sfo1\",
+          \"nyc2\",
+          \"ams2\",
+          \"sgp1\",
+          \"lon1\",
+          \"nyc3\",
+          \"ams3\",
+          \"nyc3\"
+        ],
+        \"created_at\": \"2014-10-17T20:24:33Z\",
+        \"type\": \"snapshot\",
+        \"min_disk_size\": 20
+      },
+      \"size\": {
+      },
+      \"size_slug\": \"512mb\",
+      \"networks\": {
+        \"v4\": [
+          {
+            \"ip_address\": \"104.131.186.241\",
+            \"netmask\": \"255.255.240.0\",
+            \"gateway\": \"104.131.176.1\",
+            \"type\": \"public\"
+          }
+        ],
+        \"v6\": [
+          {
+            \"ip_address\": \"2604:A880:0800:0010:0000:0000:031D:2001\",
+            \"netmask\": 64,
+            \"gateway\": \"2604:A880:0800:0010:0000:0000:0000:0001\",
+            \"type\": \"public\"
+          }
+        ]
+      },
+      \"region\": {
+        \"name\": \"New York 3\",
+        \"slug\": \"nyc3\",
+        \"sizes\": [
+          \"32gb\",
+          \"16gb\",
+          \"2gb\",
+          \"1gb\",
+          \"4gb\",
+          \"8gb\",
+          \"512mb\",
+          \"64gb\",
+          \"48gb\"
+        ],
+        \"features\": [
+          \"virtio\",
+          \"private_networking\",
+          \"backups\",
+          \"ipv6\",
+          \"metadata\"
+        ],
+        \"available\": true
+      }
+    }
+  }${NC}
+
+"
+}
 
 help_droplet_ls()
 {
   printf "%b" "${NC}
-This will show you a summary of all your droplets
+To list all Droplets in your account
+
+  ${LIGHT_GREEN}dio droplets${NC}
+
+OR,
 
   ${LIGHT_GREEN}dio ls${NC}
 
-For example,
+Example response,
 
   ${LIGHT_GREEN}
-  1234122
-  \"mydev\"
-  \"active\"
-  1234321
-  \"myprod\"
-  \"active\"${NC}
+  {
+    \"droplets\": [
+      {
+        \"id\": 3164444,
+        \"name\": \"example.com\",
+        \"memory\": 512,
+        \"vcpus\": 1,
+        \"disk\": 20,
+        \"locked\": false,
+        \"status\": \"active\",
+        \"kernel\": {
+          \"id\": 2233,
+          \"name\": \"Ubuntu 14.04 x64 vmlinuz-3.13.0-37-generic\",
+          \"version\": \"3.13.0-37-generic\"
+        },
+        \"created_at\": \"2014-11-14T16:29:21Z\",
+        \"features\": [
+          \"backups\",
+          \"ipv6\",
+          \"virtio\"
+        ],
+        \"backup_ids\": [
+          7938002
+        ],
+        \"snapshot_ids\": [
+
+        ],
+        \"image\": {
+          \"id\": 6918990,
+          \"name\": \"14.04 x64\",
+          \"distribution\": \"Ubuntu\",
+          \"slug\": \"ubuntu-14-04-x64\",
+          \"public\": true,
+          \"regions\": [
+            \"nyc1\",
+            \"ams1\",
+            \"sfo1\",
+            \"nyc2\",
+            \"ams2\",
+            \"sgp1\",
+            \"lon1\",
+            \"nyc3\",
+            \"ams3\",
+            \"nyc3\"
+          ],
+          \"created_at\": \"2014-10-17T20:24:33Z\",
+          \"type\": \"snapshot\",
+          \"min_disk_size\": 20
+        },
+        \"size\": {
+        },
+        \"size_slug\": \"512mb\",
+        \"networks\": {
+          \"v4\": [
+            {
+              \"ip_address\": \"104.236.32.182\",
+              \"netmask\": \"255.255.192.0\",
+              \"gateway\": \"104.236.0.1\",
+              \"type\": \"public\"
+            }
+          ],
+          \"v6\": [
+            {
+              \"ip_address\": \"2604:A880:0800:0010:0000:0000:02DD:4001\",
+              \"netmask\": 64,
+              \"gateway\": \"2604:A880:0800:0010:0000:0000:0000:0001\",
+              \"type\": \"public\"
+            }
+          ]
+        },
+        \"region\": {
+          \"name\": \"New York 3\",
+          \"slug\": \"nyc3\",
+          \"sizes\": [
+
+          ],
+          \"features\": [
+            \"virtio\",
+            \"private_networking\",
+            \"backups\",
+            \"ipv6\",
+            \"metadata\"
+          ],
+          \"available\": null
+        }
+      }
+    ],
+    \"links\": {
+      \"pages\": {
+        \"last\": \"https://api.digitalocean.com/v2/droplets?page=3&per_page=1\",
+        \"next\": \"https://api.digitalocean.com/v2/droplets?page=2&per_page=1\"
+      }
+    },
+    \"meta\": {
+      \"total\": 3
+    }
+  }${NC}
 
 "
 }
@@ -830,15 +1047,15 @@ For example,
 help_droplet_create()
 {
   printf "%b" "${NC}
-Use this command to create a new droplet
+To create a new Droplet
 
   ${LIGHT_GREEN}<options> dio create <name>${NC}
 
-For example,
+Example call,
 
-  ${LIGHT_GREEN}SIZE=1g dio create mystage${NC}
+  ${LIGHT_GREEN}REGION=nyc3 SIZE=512mb dio create example.com${NC}
 
-Or, if you wanted to clone a snapshot
+Or, if you wanted to create a droplet from a snapshot
 
   ${LIGHT_GREEN}IMAGE=mysnap dio create snap02${NC}
 
@@ -855,6 +1072,54 @@ Here are all the configurable options
   ${BLUE}PRIVATE_NETWORKING${NC} (defaults to ${BLUE}true${NC})
 
 Any of those options above be defaulted in a local .dio file (type ${LIGHT_GREEN}dio help init${NC} for more details).
+
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"droplet\": {
+      \"id\": 3164494,
+      \"name\": \"example.com\",
+      \"memory\": 512,
+      \"vcpus\": 1,
+      \"disk\": 20,
+      \"locked\": true,
+      \"status\": \"new\",
+      \"kernel\": {
+        \"id\": 2233,
+        \"name\": \"Ubuntu 14.04 x64 vmlinuz-3.13.0-37-generic\",
+        \"version\": \"3.13.0-37-generic\"
+      },
+      \"created_at\": \"2014-11-14T16:36:31Z\",
+      \"features\": [
+        \"virtio\"
+      ],
+      \"backup_ids\": [
+
+      ],
+      \"snapshot_ids\": [
+
+      ],
+      \"image\": {
+      },
+      \"size\": {
+      },
+      \"size_slug\": \"512mb\",
+      \"networks\": {
+      },
+      \"region\": {
+      }
+    },
+    \"links\": {
+      \"actions\": [
+        {
+          \"id\": 36805096,
+          \"rel\": \"create\",
+          \"href\": \"https://api.digitalocean.com/v2/actions/36805096\"
+        }
+      ]
+    }
+  }${NC}
 
 "
 }
@@ -876,26 +1141,38 @@ Example,
 help_droplet_kernels()
 {
   printf "%b" "${NC}
-This will show you all Kernels available for your Droplet (by <ID>)
+To retrieve a list of all kernels available to a Dropet
 
   ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> kernels${NC}
 
 You can optionally set which page (defaults to 1) to display, and how many results tokenize
-display per page (defaults to 10).
+display per page (defaults to 25).
 
-For example,
+Example call,
 
   ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 kernels${NC}
 
-Might return someting similar to
+Example response,
 
   ${LIGHT_GREEN}
-  [\"kernels\",0,\"id\"]  231
-  [\"kernels\",0,\"name\"]  \"DO-recovery-static-fsck\"
-  [\"kernels\",0,\"version\"] \"3.8.0-25-generic\"
-  [\"kernels\",1,\"id\"]  61
-  [\"kernels\",1,\"name\"]  \"Ubuntu 10.04 x32 vmlinuz-2.6.32-41-generic-pae\"
-  [\"kernels\",1,\"version\"] \"2.6.32-41-generic-pae\"${NC}
+  {
+    \"kernels\": [
+      {
+        \"id\": 231,
+        \"name\": \"DO-recovery-static-fsck\",
+        \"version\": \"3.8.0-25-generic\"
+      }
+    ],
+    \"links\": {
+      \"pages\": {
+        \"last\": \"https://api.digitalocean.com/v2/droplets/3164494/kernels?page=124&per_page=1\",
+        \"next\": \"https://api.digitalocean.com/v2/droplets/3164494/kernels?page=2&per_page=1\"
+      }
+    },
+    \"meta\": {
+      \"total\": 124
+    }
+  }${NC}
 
 "
 }
@@ -903,16 +1180,42 @@ Might return someting similar to
 help_droplet_snapshots()
 {
   printf "%b" "${NC}
-This will show you all snapshots available for your Droplet (by <ID>)
+To retrieve the snapshots that have been created from a Droplet
 
   ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> snapshots${NC}
 
 You can optionally set which page (defaults to 1) to display, and how many results tokenize
-display per page (defaults to 10).
+display per page (defaults to 25).
 
-For example,
+Example call,
 
   ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 snapshots${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"snapshots\": [
+      {
+        \"id\": 7938206,
+        \"name\": \"nginx-fresh\",
+        \"distribution\": \"Ubuntu\",
+        \"slug\": null,
+        \"public\": false,
+        \"regions\": [
+          \"nyc3\",
+          \"nyc3\"
+        ],
+        \"created_at\": \"2014-11-14T16:37:34Z\",
+        \"type\": \"snapshot\",
+        \"min_disk_size\": 20
+      }
+    ],
+    \"links\": {
+    },
+    \"meta\": {
+      \"total\": 1
+    }
+  }${NC}
 
 "
 }
@@ -925,7 +1228,7 @@ This will show you all backups available for your Droplet (by <ID>)
   ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> backups${NC}
 
 You can optionally set which page (defaults to 1) to display, and how many results tokenize
-display per page (defaults to 10).
+display per page (defaults to 25).
 
 For example,
 
@@ -942,7 +1245,7 @@ This will show you all actions available for your Droplet (by <ID>)
   ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> actions${NC}
 
 You can optionally set which page (defaults to 1) to display, and how many results tokenize
-display per page (defaults to 10).
+display per page (defaults to 25).
 
 For example,
 
@@ -984,7 +1287,7 @@ This will show you all neighbors for your Droplet (by <ID>)
   ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> neighbors${NC}
 
 You can optionally set which page (defaults to 1) to display, and how many results tokenize
-display per page (defaults to 10).
+display per page (defaults to 25).
 
 For example,
 
@@ -1359,19 +1662,19 @@ do_droplet()
 {
   case "$2" in
   "kernels")
-    show_call "droplets/$1/kernels?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load kernels for Droplet $1"
+    show_call "droplets/$1/kernels?page=${PAGE-1}&per_page=${PER_PAGE-25}" "Unable to load kernels for Droplet $1"
     ;;
   "snapshots")
-    show_call "droplets/$1/snapshots?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load snapshots for Droplet $1"
+    show_call "droplets/$1/snapshots?page=${PAGE-1}&per_page=${PER_PAGE-25}" "Unable to load snapshots for Droplet $1"
     ;;
   "backups")
-    show_call "droplets/$1/backups?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load backups for Droplet $1"
+    show_call "droplets/$1/backups?page=${PAGE-1}&per_page=${PER_PAGE-25}" "Unable to load backups for Droplet $1"
     ;;
   "actions")
-    show_call "droplets/$1/actions?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load actions for Droplet $1"
+    show_call "droplets/$1/actions?page=${PAGE-1}&per_page=${PER_PAGE-25}" "Unable to load actions for Droplet $1"
     ;;
   "neighbors"|"neighbours")
-    show_call "droplets/$1/neighbors?page=${PAGE-1}&per_page=${PER_PAGE-10}" "Unable to load neighbors for Droplet $1"
+    show_call "droplets/$1/neighbors?page=${PAGE-1}&per_page=${PER_PAGE-25}" "Unable to load neighbors for Droplet $1"
     ;;
   *)
     case "$1" in
@@ -1684,32 +1987,42 @@ cli()
     do_record $@
     ;;
 
+  # -----------------
+  # Droplets
+  # + Create a new Droplet
+  # + List All Droplets
+  # + Delete a Droplet
+  # https://developers.digitalocean.com/documentation/v2/#droplets
+  # -----------------
+  "create")
+    shift
+    droplet_create $@
+    ;;
+  "ls"|"droplets")
+    ls_droplets
+    ;;
+  "delete")
+    shift
+    droplet_delete $@
+    ;;
 
+
+
+
+  "snapshot")
+    do_snapshot $2 $3
+    ;;
   "regions")
     show_call "regions" "Unable to load DigitalOcean regions."
     ;;
   "sizes")
     show_call "sizes" "Unable to load DigitalOcean sizes."
     ;;
-  "ls")
-    ls_droplets
-    ;;
   "init")
     do_init
     ;;
-  "create")
-    shift
-    droplet_create $@
-    ;;
-  "snapshot")
-    do_snapshot $2 $3
-    ;;
   "power")
     do_power $2 $3
-    ;;
-  "delete")
-    shift
-    droplet_delete $@
     ;;
   "ssh")
     shift
@@ -1745,6 +2058,20 @@ cli()
     help_usage
     exit 0
     ;;
+
+
+  # -----------------
+  # Droplets
+  # + Retrieve an existing Droplet by Id
+  # + List available Kernels for a Droplet
+  # + List snapshots for a Droplet
+  # + List backups for a Droplet
+  # + List actions for a Droplet
+  # + List Neighbors for a Droplet
+  # + List all Droplet Neighbors
+  # + List Droplet Upgrades
+  # https://developers.digitalocean.com/documentation/v2/#droplets
+  # -----------------
   *)
     do_droplet $@
     ;;
