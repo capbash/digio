@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.18.4
+VERSION=v0.18.5
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -50,6 +50,7 @@ debug() { log $DEBUG_LEVEL "${LIGHT_GREY}$1${NC}"; }
 error_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do error "$line" ; done < $1.last ;) }
 warn_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do warn "$line" ; done < $1.last ;) }
 notify_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do notify "$line" ; done < $1.last ;) }
+info_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do notify "$line" ; done < $1.last ;) }
 debug_all() { [[ "$1" != "/dev/null" ]] && (tail -n 100 $1 > $1.last ; while read line; do debug "$line" ; done < $1.last ;) }
 
 blue() { pp "${BLUE}$1${NC}"; }
@@ -110,18 +111,39 @@ handle_error()
 do_help()
 {
   case "$1" in
-  "init")
-    help_init
-    ;;
+
+  # -----------------
+  # Account
+  # + Get User Information
+  # https://developers.digitalocean.com/documentation/v2/#account
+  # -----------------
   "account")
     help_account
     ;;
+
+
+  # -----------------
+  # Actions
+  # + List All Actions
+  # + Retrieve an existing Action
+  # https://developers.digitalocean.com/documentation/v2/#actions
+  # -----------------
   "actions")
     help_actions
     ;;
   "action")
     help_action
     ;;
+
+
+  # -----------------
+  # Domains
+  # + List All Domains
+  # + Create a new Domain
+  # + Retrieve an existing Domain
+  # + Delete a Domain
+  # https://developers.digitalocean.com/documentation/v2/#domains
+  # -----------------
   "domains")
     help_domains
     ;;
@@ -129,6 +151,9 @@ do_help()
     shift
     help_domain $@
     ;;
+
+
+
   "create")
     help_droplet_create
     ;;
@@ -158,6 +183,9 @@ do_help()
     ;;
   "list")
     info "Show 'droplets' (default), and 'keys'."
+    ;;
+  "init")
+    help_init
     ;;
   *)
     help_usage
@@ -288,17 +316,111 @@ account; this includes
 help_account()
 {
   printf "%b" "${NC}
-This will tell you about your account settings.
+Get User Information
 
   ${LIGHT_GREEN}dio account${NC}
 
-For example,
+Example response,
   ${LIGHT_GREEN}
-  droplet_limit: 25
-  email: me@myemail.com
-  uuid: asfd213asdf
-  email_verified: true
-  status: active${NC}
+  {
+    "account": {
+      \"droplet_limit\": 25,
+      \"email\": \"sammy@digitalocean.com\",
+      \"uuid\": \"b6fr89dbf6d9156cace5f3c78dc9851d957381ef\",
+      \"email_verified\": true
+    }
+  }${NC}
+
+"
+}
+
+help_actions()
+{
+  printf "%b" "${NC}
+Actions are records of events that have occurred on the resources in
+your account. These can be things like rebooting a Droplet, or transferring
+an image to a new region.
+
+An action object is created every time one of these actions is initiated.
+The action object contains information about the current status of the action,
+start and complete timestamps, and the associated resource type and ID.
+
+Every action that creates an action object is available through this endpoint.
+Completed actions are not removed from this list and are always available
+for querying.
+
+To list all of the actions that have been executed on the current account
+
+  ${LIGHT_GREEN}PAGE=<n> PER_PAGE=<m> dio actions${NC}
+
+This will be the entire list of actions taken on your account, so it will be
+quite large. As with any large collection returned by the API, the results
+will be paginated (${BLUE}PAGE${NC}) with only 25 on each page (${BLUE}PER_PAGE${NC}) by default .
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"actions\": [
+      {
+        \"id\": 36804636,
+        \"status\": \"completed\",
+        \"type\": \"create\",
+        \"started_at\": \"2014-11-14T16:29:21Z\",
+        \"completed_at\": \"2014-11-14T16:30:06Z\",
+        \"resource_id\": 3164444,
+        \"resource_type\": \"droplet\",
+        \"region\: \"nyc3\",
+        \"region_slug\": \"nyc3\"
+      }
+    ],
+    \"links\": {
+      \"pages\": {
+        \"last\": \"https://api.digitalocean.com/v2/actions?page=159&per_page=1\",
+        \"next\": \"https://api.digitalocean.com/v2/actions?page=2&per_page=1\"
+      }
+    },
+    \"meta\": {
+      \"total\": 159
+    }
+  }${NC}
+
+"
+}
+
+help_action()
+{
+  printf "%b" "${NC}
+Actions are records of events that have occurred on the resources in
+your account. These can be things like rebooting a Droplet, or transferring
+an image to a new region.
+
+An action object is created every time one of these actions is initiated.
+The action object contains information about the current status of the action,
+start and complete timestamps, and the associated resource type and ID.
+
+To retrieve a specific action object
+
+  ${LIGHT_GREEN}dio action <ID>${NC}
+
+For example,
+
+  ${LIGHT_GREEN}dio action 36804636${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"action\": {
+      \"id\": 36804636,
+      \"status\": \"completed\",
+      \"type\": \"create\",
+      \"started_at\": \"2014-11-14T16:29:21Z\",
+      \"completed_at\": \"2014-11-14T16:30:06Z\",
+      \"resource_id\": 3164444,
+      \"resource_type\": \"droplet\",
+      \"region\": \"nyc3\",
+      \"region_slug\": \"nyc3\"
+    }
+  }${NC}
 
 "
 }
@@ -306,17 +428,39 @@ For example,
 help_domains()
 {
   printf "%b" "${NC}
-This will tell you about your configured domains
+Domain resources are domain names that you have purchased from a
+domain name registrar that you are managing through the
+DigitalOcean DNS interface.
+
+To retrieve a list of all of the domains in your account
 
   ${LIGHT_GREEN}dio domains${NC}
 
-Example,
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"domains\": [
+      {
+        \"name\": \"example.com\",
+        \"ttl\": 1800,
+        \"zone_file\": \"\$ORIGIN example.com.
+                      \$TTL 1800
+                      example.com. IN SOA ns1.digitalocean.com. hostmaster.example.com. 1415982609 10800 3600 604800 1800
+                      example.com. 1800 IN NS ns1.digitalocean.com.
+                      example.com. 1800 IN NS ns2.digitalocean.com.
+                      example.com. 1800 IN NS ns3.digitalocean.com.
+                      example.com. 1800 IN A 1.2.3.4\"
+      }
+    ],
+    \"links\": {
+    },
+    \"meta\": {
+      \"total\": 1
+    }
+  }${NC}
 
-  ${LIGHT_GREEN}domains: mywebsite.com
-  ttl: 1800${NC}
-  ...
-  ${LIGHT_GREEN}domains: anotherwebsite.ca
-  ttl: 1800${NC}
+Actions that affect individual domain records should be taken on
+dio domain (${LIGHT_GREEN}dio help domain${NC})
 
 "
 }
@@ -336,30 +480,65 @@ help_domain()
   esac
 }
 
+help_domain_create()
+{
+  printf "%b" "${NC}
+To create a new domain.
+
+  ${LIGHT_GREEN}dio domain create <name> <ip_address>${NC}
+
+Set the <name> to the domain name you are adding. Set the <ip_address>
+attribute to the IP address you want to point the domain to.
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"domain\": {
+      \"name\": \"example.com\",
+      \"ttl\": 1800,
+      \"zone_file\": null
+    }
+  }${NC}
+
+"
+}
+
 help_domain_all()
 {
   printf "%b" "${NC}
-This will tell you about a particular domain
+To get details about a specific domain
 
   ${LIGHT_GREEN}dio domain <name>${NC}
 
-Example,
+Example call,
 
-  ${LIGHT_GREEN}dio domain mywebsite.com${NC}
+  ${LIGHT_GREEN}dio domain example.com${NC}
 
-Would return information similar to
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"domain\": {
+      \"name\": \"example.com\",
+      \"ttl\": 1800,
+      \"zone_file\": \"\$ORIGIN example.com.
+                    \$TTL 1800
+                    example.com. IN SOA ns1.digitalocean.com. hostmaster.example.com. 1415982611 10800 3600 604800 1800
+                    example.com. 1800 IN NS ns1.digitalocean.com.
+                    example.com. 1800 IN NS ns2.digitalocean.com.
+                    example.com. 1800 IN NS ns3.digitalocean.com.
+                    example.com. 1800 IN A 1.2.3.4\"
+    }
+  }${NC}
 
-  ${LIGHT_GREEN}[\"domain\",\"name\"] \"mywebsite.com\"
-  [\"domain\",\"ttl\"]  1800
-  [\"domain\",\"zone_file\"]  \"\$ORIGIN mywebsite.com.
-  \$TTL 1800
-  mywebsite.com. 1800 IN A 192.1.2.3
-  mywebsite.com. 1800 IN NS ns1.digitalocean.com.
-  mywebsite.com. 1800 IN NS ns2.digitalocean.com.
-  mywebsite.com. 1800 IN NS ns3.digitalocean.com.${NC}
+To create a new domain,
 
-You might also want help on creating and deleting domains,
-for that please call
+  ${LIGHT_GREEN}dio domain create <name> <ip_address>${NC}
+
+To delete an existing domain,
+
+  ${LIGHT_GREEN}dio domain delete <name>${NC}
+
+For help on those calls,
 
   ${LIGHT_GREEN}dio help domain create${NC}
   ${LIGHT_GREEN}dio help domain delete${NC}
@@ -367,74 +546,22 @@ for that please call
 "
 }
 
-help_domain_create()
-{
-  printf "%b" "${NC}
-You can create a new domain by
-
-  ${LIGHT_GREEN}dio domain create <name> <ip>${NC}
-
-Example,
-
-  ${LIGHT_GREEN}dio domain create mywebsite.com 127.0.0.0${NC}
-
-"
-}
-
 help_domain_delete()
 {
   printf "%b" "${NC}
-You can delete an existing domain by
+To delete a domain
 
   ${LIGHT_GREEN}dio domain delete <name>${NC}
 
-Example,
+The domain will be removed from your account.
 
-  ${LIGHT_GREEN}dio domain delete mywebsite.com${NC}
+Example call,
 
-"
-}
-
-help_actions()
-{
-  printf "%b" "${NC}
-This will tell you about all actions on your account.
-
-  ${LIGHT_GREEN}PAGE=<n> dio actions${NC}
-
-The ${LIGHT_GREEN}PAGE${NC} variable defaults to 1 if none is provided.
-
-Example actions might be
-
-  ${LIGHT_GREEN}[\"actions\",0,\"id\"]  1234
-  [\"actions\",0,\"status\"]  \"completed\"
-  [\"actions\",0,\"type\"]  \"rebuild\"
-  [\"actions\",1,\"id\"]  98123
-  [\"actions\",1,\"status\"]  \"completed\"
-  [\"actions\",1,\"type\"]  \"build\"${NC}
+  ${LIGHT_GREEN}dio domain delete example.com${NC}
 
 "
 }
 
-help_action()
-{
-  printf "%b" "${NC}
-This will tell you about a specific action against your account.
-
-  ${LIGHT_GREEN}dio action <ID>${NC}
-
-For example
-
-  ${LIGHT_GREEN}dio action 1234${NC}
-
-Might return
-
-  ${LIGHT_GREEN}[\"actions\",0,\"id\"]  1234
-  [\"actions\",0,\"status\"]  \"completed\"
-  [\"actions\",0,\"type\"]  \"rebuild\"${NC}
-
-"
-}
 
 help_droplet_ls()
 {
@@ -841,7 +968,7 @@ post_action()
   echo $ANSWER
 }
 
-read_dio_config()
+read_config()
 {
   if [[ -e ".dio" ]]; then
     debug "Reading in configs from .dio"
@@ -1129,112 +1256,141 @@ printf "%b" "# dio $VERSION
 # COMMAND LINE PARSER
 #--------------------
 
-read_dio_config
-case "$1" in
-"account")
-  show_call "account" "Unable to load your account information."
-  ;;
-"actions")
-  show_call "actions?page=${PAGE-1}" "Unable to load your actions."
-  ;;
-"action")
-  show_call "actions/$2" "Unable to load action $2."
-  ;;
-"domains")
-  show_call "domains" "Unable to load your domains."
-  ;;
-"regions")
-  show_call "regions" "Unable to load DigitalOcean regions."
-  ;;
-"sizes")
-  show_call "sizes" "Unable to load DigitalOcean sizes."
-  ;;
-"domain")
-  shift
-  do_domain $@
-  ;;
-"ls")
-  ls_droplets
-  ;;
-"init")
-  do_init
-  ;;
-"create")
-  shift
-  droplet_create $@
-  ;;
-"snapshot")
-  do_snapshot $2 $3
-  ;;
-"power")
-  do_power $2 $3
-  ;;
-"delete")
-  shift
-  droplet_delete $@
-  ;;
-"ssh")
-  shift
-  do_ssh $@
-  ;;
-"list")
-  do_list $2
-  ;;
-"info")
-  do_info $2
-  ;;
-"help")
-  shift
-  do_help $@
-  ;;
-"version")
-  echo -e "${BLUE}dio ${VERSION}${NC}"
-  exit 0
-  ;;
-"update-self")
-  current_digitalocean_filename=$(which dio)
-  OLD_VERSION=$(internal_version $current_digitalocean_filename)
-  info "Updating from $OLD_VERSION to latest version of dio in ${current_digitalocean_filename}"
-  info "When done run '${BLUE}dio version${NC}' for the new version."
-  CURLOPT_FRESH_CONNECT=true curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dio/master/dio
-  ;;
-"test")
-  set -euo pipefail ; IFS=$'\n\t'
-  info "Testing all non invasions calls"
-  info " -- testling help"
-  dio help > /dev/null
+cli()
+{
+  case "$1" in
 
-  info " -- testling account help"
-  dio help account > /dev/null
+  # -----------------
+  # Account
+  # + Get User Information
+  # https://developers.digitalocean.com/documentation/v2/#account
+  # -----------------
+  "account")
+    show_call "account" "Unable to load your account information."
+    ;;
 
-  info " -- testling actions help"
-  dio help actions > /dev/null
-  dio help action > /dev/null
+  # -----------------
+  # Actions
+  # + List All Actions
+  # + Retrieve an existing Action
+  # https://developers.digitalocean.com/documentation/v2/#actions
+  # -----------------
+  "actions")
+    show_call "actions?page=${PAGE-1}" "Unable to load your actions."
+    ;;
+  "action")
+    show_call "actions/$2" "Unable to load action $2."
+    ;;
 
-  info " -- testling domains help"
-  dio help domains > /dev/null
-  dio help domain > /dev/null
-  dio help domain create > /dev/null
-  dio help domain delete > /dev/null
+  # -----------------
+  # Domains
+  # + List All Domains
+  # + Create a new Domain
+  # + Retrieve an existing Domain
+  # + Delete a Domain
+  # https://developers.digitalocean.com/documentation/v2/#domains
+  # -----------------
+  "domains")
+    show_call "domains" "Unable to load your domains."
+    ;;
+  "domain")
+    shift
+    do_domain $@
+    ;;
 
-  info " -- testling droplets help"
-  dio help create > /dev/null
-  dio help ls > /dev/null
-  dio help kernels > /dev/null
-  dio help snapshots > /dev/null
-  dio help backups > /dev/null
-  dio help actions > /dev/null
-  dio help delete > /dev/null
-  dio help neighbors > /dev/null
-  dio help upgrades > /dev/null
-  info "DONE, Testing all non invasions calls"
-  ;;
+  "regions")
+    show_call "regions" "Unable to load DigitalOcean regions."
+    ;;
+  "sizes")
+    show_call "sizes" "Unable to load DigitalOcean sizes."
+    ;;
+  "ls")
+    ls_droplets
+    ;;
+  "init")
+    do_init
+    ;;
+  "create")
+    shift
+    droplet_create $@
+    ;;
+  "snapshot")
+    do_snapshot $2 $3
+    ;;
+  "power")
+    do_power $2 $3
+    ;;
+  "delete")
+    shift
+    droplet_delete $@
+    ;;
+  "ssh")
+    shift
+    do_ssh $@
+    ;;
+  "list")
+    do_list $2
+    ;;
+  "info")
+    do_info $2
+    ;;
+  "help")
+    shift
+    do_help $@
+    ;;
+  "version")
+    echo -e "${BLUE}dio ${VERSION}${NC}"
+    exit 0
+    ;;
+  "update-self")
+    current_digitalocean_filename=$(which dio)
+    OLD_VERSION=$(internal_version $current_digitalocean_filename)
+    info "Updating from $OLD_VERSION to latest version of dio in ${current_digitalocean_filename}"
+    info "When done run '${BLUE}dio version${NC}' for the new version."
+    CURLOPT_FRESH_CONNECT=true curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dio/master/dio
+    ;;
+  "test")
+    set -euo pipefail ; IFS=$'\n\t'
+    info "Testing all non invasions calls"
+    info " -- testling help"
+    dio help > /dev/null
 
-"")
-  help_usage
-  exit 0
-  ;;
-*)
-  do_droplet $@
-  ;;
-esac
+    info " -- testling account help"
+    dio help account > /dev/null
+
+    info " -- testling actions help"
+    dio help actions > /dev/null
+    dio help action > /dev/null
+
+    info " -- testling domains help"
+    dio help domains > /dev/null
+    dio help domain > /dev/null
+    dio help domain create > /dev/null
+    dio help domain delete > /dev/null
+
+    info " -- testling droplets help"
+    dio help create > /dev/null
+    dio help ls > /dev/null
+    dio help kernels > /dev/null
+    dio help snapshots > /dev/null
+    dio help backups > /dev/null
+    dio help actions > /dev/null
+    dio help delete > /dev/null
+    dio help neighbors > /dev/null
+    dio help upgrades > /dev/null
+    info "DONE, Testing all non invasions calls"
+    ;;
+
+  "")
+    help_usage
+    exit 0
+    ;;
+  *)
+    do_droplet $@
+    ;;
+  esac
+
+}
+
+read_config
+cli $@
