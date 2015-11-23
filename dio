@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.19.2
+VERSION=v0.19.3
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -216,7 +216,6 @@ do_help()
   "upgrades")
     help_droplet_upgrades
     ;;
-
 
 
   "init")
@@ -1150,7 +1149,7 @@ display per page (defaults to 25).
 
 Example call,
 
-  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 kernels${NC}
+  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 3164494 kernels${NC}
 
 Example response,
 
@@ -1189,7 +1188,7 @@ display per page (defaults to 25).
 
 Example call,
 
-  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 snapshots${NC}
+  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 3164494 snapshots${NC}
 
 Example response,
   ${LIGHT_GREEN}
@@ -1223,16 +1222,39 @@ Example response,
 help_droplet_backups()
 {
   printf "%b" "${NC}
-This will show you all backups available for your Droplet (by <ID>)
+To retrieve any backups associated with a Droplet
 
   ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> backups${NC}
 
 You can optionally set which page (defaults to 1) to display, and how many results tokenize
 display per page (defaults to 25).
 
-For example,
+Example call,
 
-  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 backups${NC}
+  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 3164494 backups${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"backups\": [
+      {
+        \"id\": 7622989,
+        \"name\": \"example.com 2014-11-14\",
+        \"distribution\": \"Ubuntu\",
+        \"slug\": null,
+        \"public\": false,
+        \"regions\": [
+          \"nyc3\"
+        ],
+        \"created_at\": \"2014-11-14T16:07:38Z\",
+        \"type\": \"snapshot\",
+        \"min_disk_size\": 20
+      }
+    ],
+    \"meta\": {
+      \"total\": 1
+    }
+  }${NC}
 
 "
 }
@@ -1240,41 +1262,57 @@ For example,
 help_droplet_actions()
 {
   printf "%b" "${NC}
-This will show you all actions available for your Droplet (by <ID>)
+To retrieve all actions that have been executed on a Droplet
 
   ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> actions${NC}
 
 You can optionally set which page (defaults to 1) to display, and how many results tokenize
 display per page (defaults to 25).
 
-For example,
+Example call,
 
-  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 kernels${NC}
+  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 3164494 kernels${NC}
 
-Might return someting similar to
-
+Example response,
   ${LIGHT_GREEN}
-  [\"actions\",0,\"id\"]  51967593
-  [\"actions\",0,\"status\"]  \"completed\"
-  [\"actions\",0,\"type\"]  \"password_reset\"
-  [\"actions\",1,\"id\"]  48517564
-  [\"actions\",1,\"status\"]  \"completed\"
-  [\"actions\",1,\"type\"]  \"rebuild\"
-  [\"meta\",\"total\"]  3${NC}
+  {
+    \"actions\": [
+      {
+        \"id\": 36805187,
+        \"status\": \"completed\",
+        \"type\": \"snapshot\",
+        \"started_at\": \"2014-11-14T16:37:34Z\",
+        \"completed_at\": \"2014-11-14T16:39:32Z\",
+        \"resource_id\": 3164494,
+        \"resource_type\": \"droplet\",
+        \"region\": \"nyc3\",
+        \"region_slug\": \"nyc3\"
+      }
+    ],
+    \"links\": {
+      \"pages\": {
+        \"last\": \"https://api.digitalocean.com/v2/droplets/3164494/actions?page=3&per_page=1\",
+        \"next\": \"https://api.digitalocean.com/v2/droplets/3164494/actions?page=2&per_page=1\"
+      }
+    },
+    \"meta\": {
+      \"total\": 3
+    }
+  }${NC}
 
 "
 }
 
-help_droplet_backups()
+help_droplet_delete()
 {
   printf "%b" "${NC}
-This will delete your Droplet (by <ID>)
+To delete a Droplet
 
   ${LIGHT_GREEN}dio delete <ID>${NC}
 
 For example,
 
-  ${LIGHT_GREEN}dio delete 1234122${NC}
+  ${LIGHT_GREEN}dio delete 3164494${NC}
 
 "
 }
@@ -1282,20 +1320,215 @@ For example,
 help_droplet_neighbors()
 {
   printf "%b" "${NC}
-This will show you all neighbors for your Droplet (by <ID>)
+To retrieve a list of droplets that are running on the same physical server
 
-  ${LIGHT_GREEN}PAGE=n PER_PAGE=m dio <ID> neighbors${NC}
+  ${LIGHT_GREEN}dio <ID> neighbors${NC}
 
-You can optionally set which page (defaults to 1) to display, and how many results tokenize
-display per page (defaults to 25).
+To retrieve a list of any droplets that are running on the same physical hardware
 
-For example,
+  ${LIGHT_GREEN}dio neighbors${NC}
 
-  ${LIGHT_GREEN}PAGE=1 PER_PAGE=2 dio 1234122 neighbors${NC}
+Example call,
+
+  ${LIGHT_GREEN}dio 3164494 neighbors${NC}
 
 You may also use the Canadian spelling, for example
 
-  ${LIGHT_GREEN}dio 1234122 neighbours${NC}
+  ${LIGHT_GREEN}dio 3164494 neighbours${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"droplets\": [
+      {
+        \"id\": 3164444,
+        \"name\": \"example.com\",
+        \"memory\": 512,
+        \"vcpus\": 1,
+        \"disk\": 20,
+        \"locked\": false,
+        \"status\": \"active\",
+        \"kernel\": {
+          \"id\": 2233,
+          \"name\": \"Ubuntu 14.04 x64 vmlinuz-3.13.0-37-generic\",
+          \"version\": \"3.13.0-37-generic\"
+        },
+        \"created_at\": \"2014-11-14T16:29:21Z\",
+        \"features\": [
+          \"backups\",
+          \"ipv6\",
+          \"virtio\"
+        ],
+        \"backup_ids\": [
+          7938002
+        ],
+        \"snapshot_ids\": [
+
+        ],
+        \"image\": {
+          \"id\": 6918990,
+          \"name\": \"14.04 x64\",
+          \"distribution\": \"Ubuntu\",
+          \"slug\": \"ubuntu-14-04-x64\",
+          \"public\": true,
+          \"regions\": [
+            \"nyc1\",
+            \"ams1\",
+            \"sfo1\",
+            \"nyc2\",
+            \"ams2\",
+            \"sgp1\",
+            \"lon1\",
+            \"nyc3\",
+            \"ams3\",
+            \"nyc3\"
+          ],
+          \"created_at\": \"2014-10-17T20:24:33Z\",
+          \"type\": \"snapshot\",
+          \"min_disk_size\": 20
+        },
+        \"size\": {
+        },
+        \"size_slug\": \"512mb\",
+        \"networks\": {
+          \"v4\": [
+            {
+              \"ip_address\": \"104.236.32.182\",
+              \"netmask\": \"255.255.192.0\",
+              \"gateway\": \"104.236.0.1\",
+              \"type\": \"public\"
+            }
+          ],
+          \"v6\": [
+            {
+              \"ip_address\": \"2604:A880:0800:0010:0000:0000:02DD:4001\",
+              \"netmask\": 64,
+              \"gateway\": \"2604:A880:0800:0010:0000:0000:0000:0001\",
+              \"type\": \"public\"
+            }
+          ]
+        },
+        \"region\": {
+          \"name\": \"New York 3\",
+          \"slug\": \"nyc3\",
+          \"sizes\": [
+
+          ],
+          \"features\": [
+            \"virtio\",
+            \"private_networking\",
+            \"backups\",
+            \"ipv6\",
+            \"metadata\"
+          ],
+          \"available\": null
+        }
+      }
+    ]
+  }${NC}
+
+Example call,
+
+  ${LIGHT_GREEN}dio neighbors${NC}
+
+You may also use the Canadian spelling, for example
+
+  ${LIGHT_GREEN}dio neighbours${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  [
+    {
+      \"neighbors\": [
+        [
+          {
+            \"id\": 3164444,
+            \"name\": \"example.com\",
+            \"memory\": 512,
+            \"vcpus\": 1,
+            \"disk\": 20,
+            \"locked\": false,
+            \"status\": \"active\",
+            \"kernel\": {
+              \"id\": 2233,
+              \"name\": \"Ubuntu 14.04 x64 vmlinuz-3.13.0-37-generic\",
+              \"version\": \"3.13.0-37-generic\"
+            },
+            \"created_at\": \"2014-11-14T16:29:21Z\",
+            \"features\": [
+              \"backups\",
+              \"ipv6\",
+              \"virtio\"
+            ],
+            \"backup_ids\": [
+              7938002
+            ],
+            \"snapshot_ids\": [
+
+            ],
+            \"image\": {
+              \"id\": 6918990,
+              \"name\": \"14.04 x64\",
+              \"distribution\": \"Ubuntu\",
+              \"slug\": \"ubuntu-14-04-x64\",
+              \"public\": true,
+              \"regions\": [
+                \"nyc1\",
+                \"ams1\",
+                \"sfo1\",
+                \"nyc2\",
+                \"ams2\",
+                \"sgp1\",
+                \"lon1\",
+                \"nyc3\",
+                \"ams3\",
+                \"nyc3\"
+              ],
+              \"created_at\": \"2014-10-17T20:24:33Z\",
+              \"type\": \"snapshot\",
+              \"min_disk_size\": 20
+            },
+            \"size\": {
+            },
+            \"size_slug\": \"512mb\",
+            \"networks\": {
+              \"v4\": [
+                {
+                  \"ip_address\": \"104.236.32.182\",
+                  \"netmask\": \"255.255.192.0\",
+                  \"gateway\": \"104.236.0.1\",
+                  \"type\": \"public\"
+                }
+              ],
+              \"v6\": [
+                {
+                  \"ip_address\": \"2604:A880:0800:0010:0000:0000:02DD:4001\",
+                  \"netmask\": 64,
+                  \"gateway\": \"2604:A880:0800:0010:0000:0000:0000:0001\",
+                  \"type\": \"public\"
+                }
+              ]
+            },
+            \"region\": {
+              \"name\": \"New York 3\",
+              \"slug\": \"nyc3\",
+              \"sizes\": [
+
+              ],
+              \"features\": [
+                \"virtio\",
+                \"private_networking\",
+                \"backups\",
+                \"ipv6\",
+                \"metadata\"
+              ],
+              \"available\": null
+            }
+          }
+        ]
+      ]
+    }
+  ]${NC}
 
 "
 }
@@ -1303,9 +1536,20 @@ You may also use the Canadian spelling, for example
 help_droplet_upgrades()
 {
   printf "%b" "${NC}
-This will show you all Droplets that are scheduled for an upgrade
+To retrieve a list of droplets that are scheduled to be upgraded
 
   ${LIGHT_GREEN}dio upgrades${NC}
+
+Example response,
+
+  ${LIGHT_GREEN}
+  [
+    {
+      \"droplet_id\": 123,
+      \"date_of_migration\": \"2014-12-01T12:00:00Z\",
+      \"url\": \"https://api.digitalocean.com/v2/droplets/123\"
+    }
+  ]${NC}
 
 "
 }
@@ -2005,8 +2249,6 @@ cli()
     shift
     droplet_delete $@
     ;;
-
-
 
 
   "snapshot")
