@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.20.0
+VERSION=v0.20.1
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -1977,6 +1977,9 @@ do_droplet()
   "neighbors"|"neighbours")
     show_call "droplets/$1/neighbors?page=${PAGE-1}&per_page=${PER_PAGE-25}" "Unable to load neighbors for Droplet $1"
     ;;
+  "active?")
+    droplet_active $1
+    ;;
   *)
     case "$1" in
       "upgrades")
@@ -2037,6 +2040,25 @@ droplet_delete()
 {
   info "About to delete droplet $1 ..."
   delete_call "droplets/$1"
+}
+
+droplet_status()
+{
+  local ID=$1
+  ANSWER=$(get_call "droplets/$ID")
+  handle_error $? "$ANSWER" "Unable to list droplet $ID"
+  OUTPUT=$(process "$ANSWER" | grep 'status' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//')
+  echo $OUTPUT
+}
+
+droplet_active()
+{
+  local STATUS=$(droplet_status $1)
+  if [[ "$STATUS" == "active" ]]; then
+    echo "true"
+  else
+    echo "false"
+  fi
 }
 
 do_snapshot()
@@ -2353,18 +2375,18 @@ cli()
     ;;
 
 
-    "ssh")
-      shift
-      do_ssh $@
-      ;;
-    "scp")
-      shift
-      do_scp $@
-      ;;
-    "ip")
-      shift
-      droplet_ip $@
-      ;;
+  "ssh")
+    shift
+    do_ssh $@
+    ;;
+  "scp")
+    shift
+    do_scp $@
+    ;;
+  "ip")
+    shift
+    droplet_ip $@
+    ;;
 
   "update-self")
     current_digitalocean_filename=$(which dio)
@@ -2404,6 +2426,7 @@ cli()
   # + List Neighbors for a Droplet
   # + List all Droplet Neighbors
   # + List Droplet Upgrades
+  # + Additional queries
   # https://developers.digitalocean.com/documentation/v2/#droplets
   # -----------------
   *)
