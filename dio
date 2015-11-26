@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.19.4
+VERSION=v0.20.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -323,6 +323,11 @@ Other Actions
 
   ${LIGHT_GREEN}init${NC}                                         ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
   ${LIGHT_GREEN}update-self${NC}                                  ${DARK_GREY}- Upgrade to latest version${NC}
+
+  ${LIGHT_GREEN}ip <ID>${NC}                                      ${DARK_GREY}- Display the IP for your droplet${NC}
+  ${LIGHT_GREEN}scp <ID> <src> <target>${NC}                      ${DARK_GREY}- Secure copy a file from <src> to your droplet's <target>${NC}
+  ${LIGHT_GREEN}ssh <cmd>?${NC}                                   ${DARK_GREY}- SSH into your droplet, or optionally run a common on your droplet${NC}
+
   ${LIGHT_GREEN}version${NC}                                      ${DARK_GREY}- Display just version information, like 'dio $VERSION'${NC}
   ${LIGHT_GREEN}help${NC}                                         ${DARK_GREY}- Show this message${NC}
 
@@ -2129,14 +2134,31 @@ do_power()
   notify "$OUTPUT\n"
 }
 
+droplet_ip()
+{
+  ID=$1
+  ANSWER=$(get_call "droplets/$ID")
+  process "$ANSWER" | grep 'networks' | grep 'v4' | grep 'ip_address' | grep ',1,' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//'
+}
+
 do_ssh()
 {
   ID=$1
   shift
-  ANSWER=$(get_call "droplets/$ID")
-  IP=$(process "$ANSWER" | grep 'networks' | grep 'v4' | grep 'ip_address' | grep ',1,' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//')
+  IP=$(droplet_ip $ID)
   debug "Calling ssh root@$IP"
   ssh root@$IP $@
+}
+
+do_scp()
+{
+  ID=$1
+  LOCAL_FILE=$2
+  REMOTE_FILE=${3-$LOCAL_FILE}
+
+  IP=$(droplet_ip $ID)
+  debug "Calling scp $LOCAL_FILE root@$IP:$REMOTE_FILE"
+  scp $LOCAL_FILE root@$IP:$REMOTE_FILE
 }
 
 do_init()
@@ -2315,10 +2337,6 @@ cli()
   "power")
     do_power $2 $3
     ;;
-  "ssh")
-    shift
-    do_ssh $@
-    ;;
   "list")
     do_list $2
     ;;
@@ -2333,6 +2351,21 @@ cli()
     echo -e "${BLUE}dio ${VERSION}${NC}"
     exit 0
     ;;
+
+
+    "ssh")
+      shift
+      do_ssh $@
+      ;;
+    "scp")
+      shift
+      do_scp $@
+      ;;
+    "ip")
+      shift
+      droplet_ip $@
+      ;;
+
   "update-self")
     current_digitalocean_filename=$(which dio)
     OLD_VERSION=$(internal_version $current_digitalocean_filename)
