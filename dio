@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.20.3
+VERSION=v0.21.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -2276,6 +2276,24 @@ do_test()
   info "DONE, Testing all non invasions calls"
 }
 
+do_replace_self()
+{
+  current_dio_filename=$(which dio)
+  CURLOPT_FRESH_CONNECT=true curl -s -o $current_dio_filename https://raw.githubusercontent.com/capbash/dio/master/dio
+}
+
+do_update_self()
+{
+  current_dio_filename=$(which dio)
+  tmp_dio_filename=$current_dio_filename.old
+  cp $current_dio_filename $tmp_dio_filename
+  OLD_VERSION=$(internal_version $current_dio_filename)
+  info "Updating from $OLD_VERSION to latest version of dio in ${current_dio_filename}"
+  debug "The old version will be stored at $tmp_dio_filename"
+  info "When done run '${BLUE}dio version${NC}' for the new version."
+  $tmp_dio_filename replace-self &
+}
+
 #--------------------
 # COMMAND LINE PARSER
 #--------------------
@@ -2403,13 +2421,14 @@ cli()
     droplet_ip $@
     ;;
 
-  "update-self")
-    current_digitalocean_filename=$(which dio)
-    OLD_VERSION=$(internal_version $current_digitalocean_filename)
-    info "Updating from $OLD_VERSION to latest version of dio in ${current_digitalocean_filename}"
-    info "When done run '${BLUE}dio version${NC}' for the new version."
-    CURLOPT_FRESH_CONNECT=true curl -s -o $current_digitalocean_filename https://raw.githubusercontent.com/capbash/dio/master/dio
+  "replace-self")
+    do_replace_self
     ;;
+
+  "update-self")
+    do_update_self
+    ;;
+
   "test")
     shift
     do_test $@
