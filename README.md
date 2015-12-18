@@ -8,13 +8,13 @@ A bash implementation of the [Digital Ocean API](https://developers.digitalocean
 To install from scratch, run
 
 ```bash
-curl -s https://raw.githubusercontent.com/capbash/dio/master/dio-installer | bash
+bash <(curl -s https://raw.githubusercontent.com/capbash/bits/master/dio-installer)
 ```
 
-This will install capbash into /usr/local/bin/dio.  To install it somewhere else, for example:
+This will install dio into /usr/local/bin/bits.  To install it somewhere else, for example:
 
 ```bash
-curl -s https://raw.githubusercontent.com/capbash/dio/master/dio-installer | bash -s -- --path ~/.bin
+bash <(curl -s https://raw.githubusercontent.com/capbash/bits/master/dio-installer) --path ~/.bin
 ```
 
 If you don't trust this project, please don't pipe into bash, and instead download the file,
