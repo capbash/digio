@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.21.0
+VERSION=v0.22.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -288,6 +288,7 @@ Droplets
   ${LIGHT_GREEN}<ID> snapshots${NC}                               ${DARK_GREY}- List snapshots for a Droplet${NC}
   ${LIGHT_GREEN}<ID> backups${NC}                                 ${DARK_GREY}- List backups for a Droplet${NC}
   ${LIGHT_GREEN}<ID> actions${NC}                                 ${DARK_GREY}- List actions for a Droplet${NC}
+  ${LIGHT_GREEN}<ID> ip${NC}                                      ${DARK_GREY}- Display the IP for your droplet${NC}
   ${LIGHT_GREEN}delete <ID>${NC}                                  ${DARK_GREY}- Delete a Droplet (by <ID>)${NC}
   ${LIGHT_GREEN}<ID> neighbors${NC}                               ${DARK_GREY}- List Neighbors for a Droplet${NC}
   ${LIGHT_GREEN}neighbors${NC}                                    ${DARK_GREY}- List all Droplet Neighbors${NC}
@@ -323,8 +324,8 @@ Other Actions
 
   ${LIGHT_GREEN}init${NC}                                         ${DARK_GREY}- Initialize the local directory to access a digital ocean account${NC}
   ${LIGHT_GREEN}update-self${NC}                                  ${DARK_GREY}- Upgrade to latest version${NC}
+  ${LIGHT_GREEN}block-until <status>${NC}                         ${DARK_GREY}- Block the shell until the <status> is reached (e.g. active)${NC}
 
-  ${LIGHT_GREEN}ip <ID>${NC}                                      ${DARK_GREY}- Display the IP for your droplet${NC}
   ${LIGHT_GREEN}scp <ID> <src> <target>${NC}                      ${DARK_GREY}- Secure copy a file from <src> to your droplet's <target>${NC}
   ${LIGHT_GREEN}ssh <cmd>?${NC}                                   ${DARK_GREY}- SSH into your droplet, or optionally run a common on your droplet${NC}
 
@@ -1983,9 +1984,10 @@ do_droplet()
   "active?")
     droplet_active $1
     ;;
-  "block-until")
-    droplet_block_until $1 $3
+  "ip")
+    droplet_ip $1
     ;;
+
   *)
     case "$1" in
       "upgrades")
@@ -2407,7 +2409,6 @@ cli()
     exit 0
     ;;
 
-
   "ssh")
     shift
     do_ssh $@
@@ -2416,9 +2417,10 @@ cli()
     shift
     do_scp $@
     ;;
-  "ip")
+
+  "block-until")
     shift
-    droplet_ip $@
+    droplet_block_until $@
     ;;
 
   "replace-self")
