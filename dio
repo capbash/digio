@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.20.2
+VERSION=v0.20.3
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -1819,8 +1819,11 @@ post_action()
 read_config()
 {
   if [[ -e ".dio" ]]; then
-    debug "Reading in configs from .dio"
+    debug "Reading in configs from .dio in current directory"
     . .dio
+  elif [[ -e "$HOME/.dio" ]]; then
+    debug "Reading in configs from .dio in $HOME/.dio"
+    . $HOME/.dio
   else
     debug "No .dio file, skippping"
   fi
