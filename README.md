@@ -53,7 +53,7 @@ Here's the default config file
 # https://developers.digitalocean.com/documentation/v2/#ssh-keys
 #
 # You can get more information about your keys by running
-#  > dio list keys
+#  > dio ssh-keys
 #
 # It should be provided as a list, do don't forget your square brackets
 # SSH_KEYS=[1234, 4567]

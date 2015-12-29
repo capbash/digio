@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.22.0
+VERSION=v0.23.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -149,7 +149,7 @@ do_help()
     ;;
   "domain")
     shift
-    help_domain $@
+    help_domain "$@"
     ;;
 
 
@@ -167,7 +167,7 @@ do_help()
     ;;
   "record")
     shift
-    help_record $@
+    help_record "$@"
     ;;
 
 
@@ -207,7 +207,7 @@ do_help()
   "actions")
     help_droplet_actions
     ;;
-  "delete")
+  "delete"|"destroy")
     help_droplet_delete
     ;;
   "neighbors"|"neighbours")
@@ -217,14 +217,31 @@ do_help()
     help_droplet_upgrades
     ;;
 
+
   # -----------------
-  # Droplets
+  # Images
   # + List all images
   # https://developers.digitalocean.com/documentation/v2/#images
   # -----------------
   "images")
     help_images
     ;;
+
+
+  # -----------------
+  # SSH Keys
+  # + List all Keys
+  # + Create a new Key
+  # + Retrieve an existing key
+  # + Update a Key
+  # + Destroy a Key
+  # https://developers.digitalocean.com/documentation/v2/#ssh-keys
+  # -----------------
+  "ssh-keys")
+    shift
+    help_sshkeys "$@"
+    ;;
+
 
   "init")
     help_init
@@ -361,7 +378,7 @@ account; this includes
   # https://developers.digitalocean.com/documentation/v2/#ssh-keys
   #
   # You can get more information about your keys by running
-  #  > dio list keys
+  #  > dio ssh-keys
   #
   # It should be provided as a list, do don't forget your square brackets${NC}
   ${LIGHT_GREEN}SSH_KEYS=[1234, 4567]${NC}
@@ -527,7 +544,7 @@ help_domain()
   "create")
     help_domain_create
     ;;
-  "delete")
+  "delete"|"destroy")
     help_domain_delete
     ;;
   *)
@@ -699,7 +716,7 @@ help_record()
   "update")
     help_record_update
     ;;
-  "delete")
+  "delete"|"destroy")
     help_record_delete
     ;;
   *)
@@ -1612,6 +1629,169 @@ Example response,
 "
 }
 
+help_sshkeys()
+{
+  case "$1" in
+  "create")
+    help_sshkeys_create
+    ;;
+  "update"|"rename")
+    help_sshkeys_update
+    ;;
+  "destroy"|"delete")
+    help_sshkeys_destroy
+    ;;
+  *)
+    help_sshkeys_all
+    ;;
+  esac
+}
+
+help_sshkeys_all()
+{
+  printf "%b" "${NC}
+DigitalOcean allows you to add SSH public keys to the interface so that you can embed
+your public key into a Droplet at the time of creation. Only the public key is required
+to take advantage of this functionality.
+
+To list all ssh-keys
+
+  ${LIGHT_GREEN}dio ssh-keys${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"ssh_keys\": [
+      {
+        \"id\": 512189,
+        \"fingerprint\": \"3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa\",
+        \"public_key\": \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example\",
+        \"name\": \"My SSH Public Key\"
+      }
+    ],
+    \"links\": {
+    },
+    \"meta\": {
+      \"total\": 1
+    }
+  }${NC}
+
+You can also list the details of just on key,
+
+  ${LIGHT_GREEN}dio ssh-keys <KEY_ID>${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"ssh_key\": {
+      \"id\": 512190,
+      \"fingerprint\": \"3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa\",
+      \"public_key\": \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example\",
+      \"name\": \"My SSH Public Key\"
+    }
+  }${NC}
+
+To create a new Key,
+
+  ${LIGHT_GREEN}dio ssh-keys create <name> <public_key>${NC}
+
+To update/rename (either word works) an existing Key,
+
+  ${LIGHT_GREEN}dio ssh-keys update <KEY_ID> <new-name>${NC}
+
+To destroy/delete (either word works) an existing domain,
+
+  ${LIGHT_GREEN}dio ssh-keys destroy <KEY_ID>${NC}
+
+For help on those calls,
+
+  ${LIGHT_GREEN}dio help ssh-keys create${NC}
+  ${LIGHT_GREEN}dio help ssh-keys update${NC}
+  ${LIGHT_GREEN}dio help domain delete${NC}
+
+"
+}
+
+help_sshkeys_create()
+{
+  printf "%b" "${NC}
+To add a new SSH public key to your DigitalOcean account.
+
+  ${LIGHT_GREEN}dio ssh-keys create <name> <public_key>${NC}
+
+Set the <name> to the name you wish to use and the
+<public_key> to a string of the full public key you are adding.
+
+Example call,
+
+  ${LIGHT_GREEN}dio ssh-keys create \\
+  \"My SSH Public Key\" \\
+  \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example\"${NC}
+
+If you have a public key file on your system, you could also run
+
+  ${LIGHT_GREEN}dio ssh-keys create \\
+  \"My SSH Public Key\" \\
+  \"$(cat ~/.ssh/id_rsa.pub)\"${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"ssh_key\": {
+      \"id\": 512190,
+      \"fingerprint\": \"3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa\",
+      \"public_key\": \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example\",
+      \"name\": \"My SSH Public Key\"
+    }
+  }${NC}
+
+"
+}
+
+help_sshkeys_update()
+{
+  printf "%b" "${NC}
+To update the name of an SSH key.
+
+  ${LIGHT_GREEN}dio ssh-keys update <KEY_ID> <name>${NC}
+
+Set the <name> to the name you wish to use and the
+<KEY_ID> to the Digital Ocean id given to that record.
+
+Example call,
+
+  ${LIGHT_GREEN}dio ssh-keys update \"Renamed SSH Key\"${NC}
+
+Example response,
+  ${LIGHT_GREEN}
+  {
+    \"ssh_key\": {
+      \"id\": 512190,
+      \"fingerprint\": \"3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa\",
+      \"public_key\": \"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example\",
+      \"name\": \"Renamed SSH Key\"
+    }
+  }${NC}
+
+"
+}
+
+help_sshkeys_destroy()
+{
+  printf "%b" "${NC}
+To destroy a public SSH key that you have in your account.
+
+  ${LIGHT_GREEN}dio ssh-keys destroy <KEY_ID>${NC}
+
+Set the <KEY_ID> to the Digital Ocean id given to that record.
+
+Example call,
+
+  ${LIGHT_GREEN}dio ssh-keys destroy 512190${NC}
+
+"
+}
+
 #--------------------
 # JSON PARSER
 #--------------------
@@ -1839,7 +2019,7 @@ verify_token()
     info "     e.g. ${LIGHT_GREEN}dio init${NC}"
     info "          ${LIGHT_GREEN}echo \"TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787\" >> .dio${NC}\n"
     info "  2) Put your <TOKEN VALUE> in a TOKEN variable"
-    info "     e.g. ${LIGHT_GREEN}TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 dio list keys${NC}"
+    info "     e.g. ${LIGHT_GREEN}TOKEN=983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 dio ssh-keys${NC}"
     info "\nIf you have no idea what we are talking about, please check out:"
     info "   https://www.digitalocean.com/community/tutorials/how-to-use-the-digitalocean-api-v2"
     info "\nPlease note that 983339f14aaaxx94ex6xd89f17797af8f33fd9f39f8ff1xx74397ef83d791787 is only an example,"
@@ -1858,9 +2038,9 @@ do_domain()
   case "$1" in
   "create")
     shift
-    domain_create $@
+    domain_create "$@"
     ;;
-  "delete")
+  "delete"|"destroy")
     shift
     info "About to delete domain $1 ..."
     delete_call "domains/$1"
@@ -1895,13 +2075,13 @@ do_record()
   case "$1" in
   "create")
     shift
-    record_create $@
+    record_create "$@"
     ;;
   "update")
     shift
-    record_update $@
+    record_update "$@"
     ;;
-  "delete")
+  "delete"|"destroy")
     shift
     info "About to delete record $1 $2 ..."
     delete_call "domains/$1/records/$2"
@@ -2108,9 +2288,6 @@ do_list()
   "droplets")
     ls_droplets
     ;;
-  "keys")
-    ls_keys
-    ;;
   esac
 }
 
@@ -2144,15 +2321,6 @@ ls_droplet()
   notify "$OUTPUT\n"
 }
 
-ls_keys()
-{
-  ANSWER=$(get_call "account/keys")
-  handle_error $? "$ANSWER" "Unable to list keys"
-  OUTPUT=$(process "$ANSWER" | grep 'id\|name' | awk -F' ' '{print $2}')
-
-  notify "\nAvailable SSH Keys Include:\n"
-  notify "$OUTPUT\n"
-}
 
 ls_images()
 {
@@ -2163,6 +2331,84 @@ ls_images()
   notify "\nAvailable Images:\n"
   notify "$OUTPUT\n"
 }
+
+
+do_sshkeys()
+{
+  case "$1" in
+  "create")
+    shift
+    sshkeys_create "$@"
+    ;;
+  "update"|"rename")
+    shift
+    sshkeys_update "$@"
+    ;;
+  "delete"|"destroy")
+    shift
+    info "About to delete ssh-key $1 ..."
+    delete_call "account/keys/$1"
+    ;;
+  "")
+    sshkeys_ls
+    ;;
+  *)
+    sshkeys_ls "$@"
+    ;;
+  esac
+}
+
+sshkeys_create()
+{
+  NAME="$1"
+  PUBLIC_KEY="$2"
+
+  TOKEN=${TOKEN}
+  LOGFILE=${LOGFILE-/tmp/dio.log}
+
+  verify_token $TOKEN
+  info "Creating a ssh-key \"$NAME\""
+  ANSWER=$(curl -X POST $API_URL/account/keys \
+           -d "{\"name\":\"$NAME\", \"public_key\":\"$PUBLIC_KEY\"}" \
+           -H "Authorization: Bearer $TOKEN" \
+           -H "Content-Type: application/json" 2> $LOGFILE)
+  handle_error $? "$ANSWER" "Unable to create ssh-key $NAME ($IP)"
+  OUTPUT=$(process "$ANSWER")
+  info "$OUTPUT"
+}
+
+sshkeys_update()
+{
+  KEY_ID="$1"
+  NAME="$2"
+
+  TOKEN=${TOKEN}
+  LOGFILE=${LOGFILE-/tmp/dio.log}
+
+  verify_token $TOKEN
+  info "Updating a ssh-key $KEY_ID to \"$NAME\""
+  ANSWER=$(curl -X PUT $API_URL/account/keys/$KEY_ID \
+           -d "{\"name\":\"$NAME\"}" \
+           -H "Authorization: Bearer $TOKEN" \
+           -H "Content-Type: application/json" 2> $LOGFILE)
+  handle_error $? "$ANSWER" "Unable to update ssh-key $KEY_ID to \"$NAME\""
+  OUTPUT=$(process "$ANSWER")
+  info "$OUTPUT"
+}
+
+sshkeys_ls()
+{
+  if [[ "$1" == "" ]]; then
+    ANSWER=$(get_call "account/keys")
+    handle_error $? "$ANSWER" "Unable to list ssh-keys"
+    OUTPUT=$(process "$ANSWER" | grep 'id\|name' | awk -F' ' '{print $2}')
+    notify "\nAvailable SSH Keys Include:\n"
+    notify "$OUTPUT\n"
+  else
+    show_call "account/keys/$1" "Unable to list ssh-keys $1"
+  fi
+}
+
 
 do_power()
 {
@@ -2186,7 +2432,7 @@ do_ssh()
   shift
   IP=$(droplet_ip $ID)
   debug "Calling ssh root@$IP"
-  ssh root@$IP $@
+  ssh root@$IP "$@"
 }
 
 do_scp()
@@ -2217,7 +2463,7 @@ printf "%b" "# dio $VERSION
 # https://developers.digitalocean.com/documentation/v2/#ssh-keys
 #
 # You can get more information about your keys by running
-#  > dio list keys
+#  > dio ssh-keys
 #
 # It should be provided as a list, do don't forget your square brackets
 # SSH_KEYS=[1234, 4567]
@@ -2233,6 +2479,7 @@ do_test()
 
   info " :::: Account :::"
   dio account 2>/dev/null 1>&2
+  dio ssh-keys 2>/dev/null 1>&2
   dio help account 2>/dev/null 1>&2
 
   info " :::: Actions :::"
@@ -2307,6 +2554,7 @@ cli()
   # -----------------
   # Account
   # + Get User Information
+  # + Get SSH Keys
   # https://developers.digitalocean.com/documentation/v2/#account
   # -----------------
   "account")
@@ -2339,7 +2587,7 @@ cli()
     ;;
   "domain")
     shift
-    do_domain $@
+    do_domain "$@"
     ;;
 
   # -----------------
@@ -2356,7 +2604,7 @@ cli()
     ;;
   "record")
     shift
-    do_record $@
+    do_record "$@"
     ;;
 
   # -----------------
@@ -2368,14 +2616,14 @@ cli()
   # -----------------
   "create")
     shift
-    droplet_create $@
+    droplet_create "$@"
     ;;
   "ls"|"droplets")
     ls_droplets
     ;;
-  "delete")
+  "delete"|"destroy")
     shift
-    droplet_delete $@
+    droplet_delete "$@"
     ;;
 
 
@@ -2402,7 +2650,7 @@ cli()
     ;;
   "help")
     shift
-    do_help $@
+    do_help "$@"
     ;;
   "version")
     echo -e "${BLUE}dio ${VERSION}${NC}"
@@ -2411,16 +2659,16 @@ cli()
 
   "ssh")
     shift
-    do_ssh $@
+    do_ssh "$@"
     ;;
   "scp")
     shift
-    do_scp $@
+    do_scp "$@"
     ;;
 
   "block-until")
     shift
-    droplet_block_until $@
+    droplet_block_until "$@"
     ;;
 
   "replace-self")
@@ -2433,16 +2681,30 @@ cli()
 
   "test")
     shift
-    do_test $@
+    do_test "$@"
     ;;
 
   # -----------------
-  # Droplets
+  # Images
   # + List all images
   # https://developers.digitalocean.com/documentation/v2/#images
   # -----------------
   "images")
     ls_images
+    ;;
+
+  # -----------------
+  # SSH Keys
+  # + List all Keys
+  # + Create a new Key
+  # + Retrieve an existing key
+  # + Update a Key
+  # + Destroy a Key
+  # https://developers.digitalocean.com/documentation/v2/#ssh-keys
+  # -----------------
+  "ssh-keys")
+    shift
+    do_sshkeys "$@"
     ;;
 
 
@@ -2466,11 +2728,11 @@ cli()
   # https://developers.digitalocean.com/documentation/v2/#droplets
   # -----------------
   *)
-    do_droplet $@
+    do_droplet "$@"
     ;;
   esac
 
 }
 
 read_config
-cli $@
+cli "$@"
