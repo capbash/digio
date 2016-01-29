@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.24.0
+VERSION=v0.25.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -228,6 +228,9 @@ do_help()
   "images")
     help_images
     ;;
+  "imageid")
+    help_imageid
+    ;;
 
 
   # -----------------
@@ -324,6 +327,7 @@ Droplet Actions
 Images
 
   ${LIGHT_GREEN}images${NC}                                       ${DARK_GREY}- List all private images${NC}
+  ${LIGHT_GREEN}imageid <name>${NC}                               ${DARK_GREY}- Lookup the Image ID by name${NC}
 
 
 API Queries
@@ -1647,6 +1651,21 @@ Example response,
 "
 }
 
+help_imageid()
+{
+  printf "%b" "${NC}
+To retrieve the ID of an image by it's name.  If you duplicate names,
+then good luck (and please don't use this feature)
+
+  ${LIGHT_GREEN}dio imageid <NAME>${NC}
+
+Example response,
+
+  ${LIGHT_GREEN}123412341243${NC}
+
+"
+}
+
 help_sshkeys()
 {
   case "$1" in
@@ -2368,6 +2387,44 @@ ls_images()
   notify "$OUTPUT\n"
 }
 
+imageid()
+{
+  NAME=$1
+  MODE=none
+  ID=none
+  for lookup in $(process "$(get_call "images?page=1&per_page=100&private=true")"); do
+    if [[ "$MODE" == "name" && $lookup == "\"$NAME\"" ]]; then
+      echo "$ID"
+      return
+    elif [[ $lookup == *"\"name\""* ]]; then
+      MODE="name"
+    else
+      MODE=none
+      ID=$lookup
+    fi
+  done
+}
+
+lookup_id()
+{
+  NAME=$1
+  LOOKUPS=$2
+  MODE=none
+  ID=none
+  for lookup in "$LOOKUPS"; do
+    if [[ "$MODE" == "name" && $lookup == "\"$NAME\"" ]]; then
+      echo "$ID"
+      return
+    elif [[ $lookup == *"\"name\""* ]]; then
+      MODE="name"
+    else
+      MODE=none
+      ID=$lookup
+    fi
+  done
+}
+
+
 
 do_sshkeys()
 {
@@ -2732,6 +2789,11 @@ cli()
   "images")
     ls_images
     ;;
+  "imageid")
+    shift
+    imageid "$@"
+    ;;
+
 
   # -----------------
   # SSH Keys
