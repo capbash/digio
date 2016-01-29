@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.23.0
+VERSION=v0.24.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -216,7 +216,9 @@ do_help()
   "upgrades")
     help_droplet_upgrades
     ;;
-
+  "id")
+    help_droplet_id
+    ;;
 
   # -----------------
   # Images
@@ -317,6 +319,7 @@ Droplet Actions
   ${LIGHT_GREEN}power off <ID>${NC}                               ${DARK_GREY}- Turn off your droplet${NC}
   ${LIGHT_GREEN}snapshot <ID> <name>${NC}                         ${DARK_GREY}- Create a snapshot of <ID> called <name>${NC}
   ${LIGHT_GREEN}ssh <ID>${NC}                                     ${DARK_GREY}- SSH into your droploet${NC}
+  ${LIGHT_GREEN}id <NAME>${NC}                                    ${DARK_GREY}- Lookup the Droploet ID by name${NC}
 
 Images
 
@@ -1588,6 +1591,21 @@ Example response,
 "
 }
 
+help_droplet_id()
+{
+  printf "%b" "${NC}
+To retrieve the ID of a droplet by it's name.  If you duplicate names,
+then good luck (and please don't use this feature)
+
+  ${LIGHT_GREEN}dio id <NAME>${NC}
+
+Example response,
+
+  ${LIGHT_GREEN}123412341243${NC}
+
+"
+}
+
 help_images()
 {
   printf "%b" "${NC}
@@ -2230,6 +2248,24 @@ droplet_delete()
   delete_call "droplets/$1"
 }
 
+droplet_id()
+{
+  NAME=$1
+  MODE=none
+  ID=none
+  for lookup in $(process "$(get_call "droplets")"); do
+    if [[ "$MODE" == "name" && $lookup == "\"$NAME\"" ]]; then
+      echo "$ID"
+      return
+    elif [[ $lookup == *"\"name\""* ]]; then
+      MODE="name"
+    else
+      MODE=none
+      ID=$lookup
+    fi
+  done
+}
+
 droplet_status()
 {
   local ID=$1
@@ -2624,6 +2660,10 @@ cli()
   "delete"|"destroy")
     shift
     droplet_delete "$@"
+    ;;
+  "id")
+    shift
+    droplet_id "$@"
     ;;
 
 
