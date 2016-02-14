@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.25.0
+VERSION=v0.26.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -2014,8 +2014,6 @@ show_call()
   notify "$OUTPUT\n"
 }
 
-
-
 delete_call()
 {
   curl_call "DELETE" "$1"
@@ -2069,6 +2067,16 @@ verify_token()
 #--------------------
 # API HELPER FUNCTIONS
 #--------------------
+
+resolve_id()
+{
+  ID=$1
+  if ! [[ $ID =~ ^-?[0-9]+$ ]] ; then
+    droplet_id "$ID"
+  else
+    echo "$ID"
+  fi
+}
 
 do_domain()
 {
@@ -2162,7 +2170,7 @@ record_create()
 record_update()
 {
   DOMAIN=$1
-  ID=$2
+  ID=$(resolve_id $2)
   FIELD=$3
   VALUE=$4
 
@@ -2287,7 +2295,7 @@ droplet_id()
 
 droplet_status()
 {
-  local ID=$1
+  local ID=$(resolve_id $1)
   ANSWER=$(get_call "droplets/$ID")
   handle_error $? "$ANSWER" "Unable to list droplet $ID"
   OUTPUT=$(process "$ANSWER" | grep 'status' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//')
@@ -2306,7 +2314,7 @@ droplet_active()
 
 droplet_block_until()
 {
-  local ID=$1
+  local ID=$(resolve_id $1)
   local STATUS=$2
   while [[ "$(droplet_status $ID)" != "$STATUS" ]]; do
     sleep 10
@@ -2315,7 +2323,7 @@ droplet_block_until()
 
 do_snapshot()
 {
-  ID=$1
+  ID=$(resolve_id $1)
   NAME=$2
   TOKEN=${TOKEN}
   LOGFILE=${LOGFILE-/tmp/dio.log}
@@ -2348,7 +2356,7 @@ do_list()
 
 do_info()
 {
-  ID=$1
+  ID=$(resolve_id $1)
   ANSWER=$(get_call "droplets/$ID")
   handle_error $? "$ANSWER" "Unable to get info about droplet $ID"
   OUTPUT=$(process "$ANSWER")
@@ -2367,7 +2375,7 @@ ls_droplets()
 
 ls_droplet()
 {
-  local ID=$1
+  local ID=$(resolve_id $1)
   ANSWER=$(get_call "droplets/$ID")
   handle_error $? "$ANSWER" "Unable to list droplet $ID"
   OUTPUT=$(process "$ANSWER" | grep 'id\|name\|status' | grep -v 'kernel' | grep -v 'image' | grep -v 'region' | awk -F' ' '{print $2}')
@@ -2506,7 +2514,7 @@ sshkeys_ls()
 do_power()
 {
   ON_OR_OFF=$1
-  ID=$2
+  ID=$(resolve_id $2)
   ANSWER=$(post_action droplets/$ID/actions "power_$ON_OR_OFF")
   OUTPUT=$(process "$ANSWER")
   notify "$OUTPUT\n"
@@ -2514,14 +2522,14 @@ do_power()
 
 droplet_ip()
 {
-  ID=$1
+  ID=$(resolve_id $1)
   ANSWER=$(get_call "droplets/$ID")
   process "$ANSWER" | grep 'networks' | grep 'v4' | grep 'ip_address' | grep ',1,' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//'
 }
 
 do_ssh()
 {
-  ID=$1
+  ID=$(resolve_id $1)
   shift
   IP=$(droplet_ip $ID)
   debug "Calling ssh root@$IP"
@@ -2530,7 +2538,7 @@ do_ssh()
 
 do_scp()
 {
-  ID=$1
+  ID=$(resolve_id $1)
   LOCAL_FILE=$2
   REMOTE_FILE=${3-$LOCAL_FILE}
 
