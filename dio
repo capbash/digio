@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.26.0
+VERSION=v0.27.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -327,13 +327,17 @@ Droplet Actions
 Images
 
   ${LIGHT_GREEN}images${NC}                                       ${DARK_GREY}- List all private images${NC}
+  ${LIGHT_GREEN}applications${NC}                                 ${DARK_GREY}- List all applicaiton images${NC}
+  ${LIGHT_GREEN}distributions${NC}                                ${DARK_GREY}- List all distribution images${NC}
   ${LIGHT_GREEN}imageid <name>${NC}                               ${DARK_GREY}- Lookup the Image ID by name${NC}
 
 
 API Queries
 
-  ${LIGHT_GREEN}list keys${NC}                                    ${DARK_GREY}- List all SSH Keys assoicated with your account${NC}
   ${LIGHT_GREEN}list droplets${NC}                                ${DARK_GREY}- List all droplets (use this to grab your droplet IDs${NC}
+  ${LIGHT_GREEN}list images${NC}                                  ${DARK_GREY}- List all private images${NC}
+  ${LIGHT_GREEN}list applications${NC}                            ${DARK_GREY}- List all applicaiton images${NC}
+  ${LIGHT_GREEN}list distributions${NC}                           ${DARK_GREY}- List all distribution images${NC}
   ${LIGHT_GREEN}info <ID>${NC}                                    ${DARK_GREY}- List details about your droplet${NC}
 
 Regions
@@ -2271,8 +2275,9 @@ droplet_create()
 
 droplet_delete()
 {
-  info "About to delete droplet $1 ..."
-  delete_call "droplets/$1"
+  local ID=$(resolve_id $1)
+  info "About to delete droplet $ID ..."
+  delete_call "droplets/$ID"
 }
 
 droplet_id()
@@ -2351,6 +2356,17 @@ do_list()
   "droplets")
     ls_droplets
     ;;
+  "images")
+    ls_images
+    ;;
+  "distributions"|"distribution"|"dists"|"dist")
+    shift
+    ls_distribution_images "$@"
+    ;;
+  "applications"|"application"|"app"|"apps")
+    shift
+    ls_application_images "$@"
+    ;;
   esac
 }
 
@@ -2390,9 +2406,47 @@ ls_images()
   ANSWER=$(get_call "images?page=1&per_page=100&private=true")
   handle_error $? "$ANSWER" "Unable to list images"
   OUTPUT=$(process "$ANSWER")
-
-  notify "\nAvailable Images:\n"
+  notify "\nAvailable Images ($TYPE):\n"
   notify "$OUTPUT\n"
+}
+
+ls_application_images()
+{
+  ANSWER=$(get_call "images?type=application")
+  handle_error $? "$ANSWER" "Unable to list application images"
+  OUTPUT=$(process "$ANSWER")
+  notify "\nAvailable Application Images:\n"
+  notify "$OUTPUT\n"
+}
+
+ls_distribution_images()
+{
+  ANSWER=$(get_call "images?type=distribution")
+  handle_error $? "$ANSWER" "Unable to list distribution images"
+  OUTPUT=$(process "$ANSWER")
+  notify "\nAvailable Distribution Images:\n"
+  notify "$OUTPUT\n"
+}
+
+do_images()
+{
+  case "$1" in
+  "create")
+    shift
+    domain_create "$@"
+    ;;
+  "delete"|"destroy")
+    shift
+    info "About to delete domain $1 ..."
+    delete_call "domains/$1"
+    ;;
+  "ls")
+    ls_images
+    ;;
+  *)
+    ls_images
+    ;;
+  esac
 }
 
 imageid()
@@ -2747,8 +2801,9 @@ cli()
   "power")
     do_power $2 $3
     ;;
-  "list")
-    do_list $2
+  "list"|"ls")
+    shift
+    do_list "$@"
     ;;
   "info")
     do_info $2
@@ -2795,7 +2850,16 @@ cli()
   # https://developers.digitalocean.com/documentation/v2/#images
   # -----------------
   "images")
-    ls_images
+    shift
+    do_images "$@"
+    ;;
+  "distributions"|"distribution"|"dists"|"dist")
+    shift
+    ls_distribution_images "$@"
+    ;;
+  "applications"|"application"|"app"|"apps")
+    shift
+    list_application_images "$@"
     ;;
   "imageid")
     shift
