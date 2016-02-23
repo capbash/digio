@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.27.0
+VERSION=v0.28.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -2082,6 +2082,16 @@ resolve_id()
   fi
 }
 
+resolve_imageid()
+{
+  ID=$1
+  if ! [[ $ID =~ ^-?[0-9]+$ ]] ; then
+    imageid "$ID"
+  else
+    echo "$ID"
+  fi
+}
+
 do_domain()
 {
   case "$1" in
@@ -2243,6 +2253,8 @@ droplet_create()
   PRIVATE_NETWORKING=${PRIVATE_NETWORKING-true}
   LOGFILE=${LOGFILE-/tmp/dio.log}
 
+  IMAGEID=$(resolve_imageid $IMAGE)
+
   verify_token $TOKEN
 
   if [[ "$SSH_KEYS" = "" ]]; then
@@ -2263,7 +2275,7 @@ droplet_create()
   debug "  -- USER_DATA=$USER_DATA"
   debug "  -- PRIVATE_NETWORKING=$PRIVATE_NETWORKING"
   ANSWER=$(curl -X POST $API_URL/droplets \
-           -d "{\"name\":\"$NAME\", \"region\":\"$REGION\",\"size\":\"$SIZE\",\"image\":\"$IMAGE\", $SSH_OUTPUT\"backups\": $BACKUPS, \"ipv6\": $IPV6, \"user_data\": $USER_DATA, \"private_networking\": $PRIVATE_NETWORKING}" \
+           -d "{\"name\":\"$NAME\", \"region\":\"$REGION\",\"size\":\"$SIZE\",\"image\":\"$IMAGEID\", $SSH_OUTPUT\"backups\": $BACKUPS, \"ipv6\": $IPV6, \"user_data\": $USER_DATA, \"private_networking\": $PRIVATE_NETWORKING}" \
            -H "Authorization: Bearer $TOKEN" \
            -H "Content-Type: application/json" 2> $LOGFILE)
 
