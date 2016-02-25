@@ -141,7 +141,7 @@ Droplet Actions
 
 API Queries
 
-  list keys                  - List all SSH Keys assoicated with your account
+  list keys                  - List all SSH Keys associated with your account
   list droplets              - List all droplets (use this to grab your droplet IDs
   list images                - List all private images
 
