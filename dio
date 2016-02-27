@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.28.0
+VERSION=v0.29.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -2255,6 +2255,11 @@ droplet_create()
 
   IMAGEID=$(resolve_imageid $IMAGE)
 
+  # A public name, which can be used as-is
+  if [[ "$IMAGEID" == "" ]]; then
+    IMAGEID=$IMAGE
+  fi
+
   verify_token $TOKEN
 
   if [[ "$SSH_KEYS" = "" ]]; then
@@ -2268,7 +2273,7 @@ droplet_create()
   debug "  -- NAME=$NAME"
   debug "  -- REGION=$REGION"
   debug "  -- SIZE=$SIZE"
-  debug "  -- IMAGE=$IMAGE"
+  debug "  -- IMAGE=$IMAGE ($IMAGEID)"
   debug "  -- SSH_KEYS=$SSH_KEYS"
   debug "  -- BACKUPS=$BACKUPS"
   debug "  -- IPV6=$IPV6"
