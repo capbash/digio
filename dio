@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION=v0.29.0
+VERSION=v0.30.0
 API_URL=https://api.digitalocean.com/v2
 
 #--------------------
@@ -2595,7 +2595,20 @@ droplet_ip()
 {
   ID=$(resolve_id $1)
   ANSWER=$(get_call "droplets/$ID")
-  process "$ANSWER" | grep 'networks' | grep 'v4' | grep 'ip_address' | grep ',1,' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//'
+
+  IP=""
+  process "$ANSWER" | while read -r line ; do
+    NEXT_IP=`echo "$line" | grep 'networks' | grep 'v4' | grep 'ip_address' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//'`
+    TYPE=`echo "$line" | grep 'networks' | grep 'v4' | grep 'type' | awk -F' ' '{print $2}' | sed -e 's/^"//'  -e 's/"$//'`
+    if [ "$NEXT_IP" != "" ]; then
+      IP=$NEXT_IP
+    fi
+
+    if [ "$TYPE" = "public" ]; then
+      echo "$IP"
+      break
+    fi
+  done
 }
 
 do_ssh()
